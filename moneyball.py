@@ -11,8 +11,16 @@ st.title("FM26 Moneyball App")
 
 # Data Functions and processing
 ## File uploader
-def load_data(uploaded_file):
-    df = pd.read_csv(uploaded_file)
+def load_data(uploaded_file, possession_file):
+    df = pd.read_csv(uploaded_file, sep=';')
+    
+    # Load and process possession lookup
+    df_poss = pd.read_csv(possession_file)
+    df_poss['Possession'] = df_poss['Possession'].str.rstrip('%').astype(float) / 100
+    
+    # Merge possession onto player data
+    df = df.merge(df_poss, on='Club', how='left')
+    
     df = derived_columns(df)
     return df
 
@@ -252,11 +260,26 @@ def build_position_mask(pos_data, selected_role, selected_sides):
 
 # UI Setup
 ## File uploader
-uploaded_file = st.file_uploader("Upload FM CSV", type=["csv"])
+col_upload1, col_upload2 = st.columns(2)
+with col_upload1:
+    uploaded_file = st.file_uploader("Upload FM Player CSV", type=["csv"])
+with col_upload2:
+    possession_file = st.file_uploader("Upload Possession CSV", type=["csv"])
+
 
 ##  Main App
 if uploaded_file:
-    df = load_data(uploaded_file)
+    if possession_file:
+        df = load_data(uploaded_file, possession_file)
+
+        unmatched = df[df['Possession'].isna()]['Club'].unique()
+        if len(unmatched) > 0:
+            st.warning(f"{len(unmatched)} clubs have no possession data - P-ad metrics will be empty for those players.")
+            with st.expander("Unmatched clubs"):
+                st.write(list(unmatched))
+    else:
+        df = pd.read_csv(uploaded_file, sep=';')
+        st.info("No possession data uploaded - P-ad metrics will not be available.")
     
     # Identify percentile columns
     percentile_cols = [
