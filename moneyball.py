@@ -37,9 +37,9 @@ desc_cols = [
     "Left Foot",
     "Right Foot",
     "Recurring Injury",
-    "Injury Susceptibility"
-    #"Wage",
-    #"Transfer Value", 
+    "Injury Susceptibility",
+    "Wage",
+    "Transfer Value", 
 ]
 pad_cols = [
     "P-ad Mins/Gl",
@@ -345,8 +345,22 @@ if uploaded_file:
         ## what columns in the percentiles - review later for custom selection
         visible_cols=stat_cols
 
-        ## calculate percentiles for visible columns
+        #        ## calculate percentiles for visible columns
 
-        if len(visible_cols) == 0 :
+        if len(visible_cols) == 0:
             st.warning("Select at least one column to display")
-        
+        else:
+            # Calculate percentiles within the filtered position group
+            percentile_df = filtered_df[["Player", "Club"]].copy()
+            
+            for col in visible_cols:
+                if col in INVERTED_COLS:
+                    percentile_df[col] = filtered_df[col].rank(pct=True, ascending=False)
+                else:
+                    percentile_df[col] = filtered_df[col].rank(pct=True, ascending=True)
+            
+            # Convert to 0-100 scale
+            percentile_df[visible_cols] = (percentile_df[visible_cols] * 100).round(0)
+            
+            st.markdown("#### Percentile Rankings")
+            st.dataframe(percentile_df, use_container_width=True)
