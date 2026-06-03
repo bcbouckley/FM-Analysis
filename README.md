@@ -63,9 +63,12 @@ You will need:
 
 ### Step 2 — Install requirements
 
-Open the project folder and install dependencies:
+Open the project folder create a .venv and install dependencies by pasting and running one at a time:
 
 ```bash id="kq9m2a"
+python -m venv .venv
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+.\.venv\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 
