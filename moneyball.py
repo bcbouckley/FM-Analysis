@@ -3,66 +3,20 @@ import pandas as pd
 import numpy as np
 import re
 
-
-# Set page Title
+# Page Setup
+## Set page Title
 st.set_page_config(page_title="FM Moneyball", layout="wide")
 st.title("FM26 Moneyball App")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload FM CSV", type=["csv"])
+
+# Data Functions and processing
+## File uploader
 def load_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
     df = derived_columns(df)
     return df
 
-# Splitting best position into separate roles and sides for dropdowns and filtering
-def parse_positions(position_series):
-    roles = set()
-    sides = set()
-    for pos in position_series.unique():
-        if pd.isna(pos):
-            continue
-        segments = pos.split(", ")
-        for seg in segments:
-            side_match = re.search(r"\(([RLC]+)\)", seg)
-            if side_match:
-                for char in side_match.group(1):
-                    sides.add(char)
-                role_part = seg[:side_match.start()].strip()
-            else:
-                role_part = seg.strip()
-            for role in role_part.split("/"):
-                r = role.strip()
-                if r:
-                    roles.add(r)
-    # Sort roles dropdown by typical football hierarchy
-    role_order = ["ST", "AM", "M", "DM", "WB", "D", "GK"]
-    roles = sorted(roles, key=lambda x: role_order.index(x) if x in role_order else 999)
-    sides = sorted(sides)
-    return roles, sides
-
-
-def player_matches(position_str, selected_role, selected_sides):
-    if pd.isna(position_str):
-        return False
-    segments = position_str.split(", ")
-    for seg in segments:
-        side_match = re.search(r"\(([RLC]+)\)", seg)
-        if side_match:
-            seg_sides = set(side_match.group(1))
-            role_part = seg[:side_match.start()].strip()
-        else:
-            seg_sides = set()
-            role_part = seg.strip()
-        seg_roles = [r.strip() for r in role_part.split("/")]
-        if selected_role in seg_roles:
-            if len(selected_sides) == 0:
-                return True
-            if selected_sides.issubset(seg_sides):
-                return True
-    return False
-
-# Derived column funcitons
+## Derived column funcitons
 def derived_columns(df):
     #Shooting
     df["P-ad Mins/Gl"] = df["Mins/Gl"] * df["Possession"]
@@ -125,8 +79,65 @@ def derived_columns(df):
     df["Risky Pass Rate"] = df["OP-KP/90"] / df["Ps A/90"] * 100
     return df
 
+# Position Logic Functions
+## Splitting best position into separate roles and sides for dropdowns and filtering
+def parse_positions(position_series):
+    roles = set()
+    sides = set()
+    for pos in position_series.unique():
+        if pd.isna(pos):
+            continue
+        segments = pos.split(", ")
+        for seg in segments:
+            side_match = re.search(r"\(([RLC]+)\)", seg)
+            if side_match:
+                for char in side_match.group(1):
+                    sides.add(char)
+                role_part = seg[:side_match.start()].strip()
+            else:
+                role_part = seg.strip()
+            for role in role_part.split("/"):
+                r = role.strip()
+                if r:
+                    roles.add(r)
+    # Sort roles dropdown by typical football hierarchy
+    role_order = ["ST", "AM", "M", "DM", "WB", "D", "GK"]
+    roles = sorted(roles, key=lambda x: role_order.index(x) if x in role_order else 999)
+    sides = sorted(sides)
+    return roles, sides
 
-# Main App
+## Function to check if a player's position string matches the selected role and sides
+def player_matches(position_str, selected_role, selected_sides):
+    if pd.isna(position_str):
+        return False
+    segments = position_str.split(", ")
+    for seg in segments:
+        side_match = re.search(r"\(([RLC]+)\)", seg)
+        if side_match:
+            seg_sides = set(side_match.group(1))
+            role_part = seg[:side_match.start()].strip()
+        else:
+            seg_sides = set()
+            role_part = seg.strip()
+        seg_roles = [r.strip() for r in role_part.split("/")]
+        if selected_role in seg_roles:
+            if len(selected_sides) == 0:
+                return True
+            if selected_sides.issubset(seg_sides):
+                return True
+    return False
+
+## Mask builder to apply player_matches
+def build_position_mask(pos_data, selected_role, selected_sides):
+    return pos_data.apply(lambda x: player_matches(x, selected_role, selected_sides)
+    )
+
+
+# UI Setup
+## File uploader
+uploaded_file = st.file_uploader("Upload FM CSV", type=["csv"])
+
+##  Main App
 if uploaded_file:
     df = load_data(uploaded_file)
     
@@ -173,8 +184,7 @@ if uploaded_file:
     else:
         pos_data = df["Best Pos"].fillna("")
     
-    
-    mask = pos_data.apply(lambda x: player_matches(x, selected_role, selected_sides))
+    mask = build_position_mask(pos_data, selected_role, selected_sides)
     filtered_df = df[mask].copy()
 
     st.write(f"{len(filtered_df)} players match filter")
