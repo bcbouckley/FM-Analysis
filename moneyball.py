@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import re
 
+## this is a test 
+
+
 # Page Setup
 ## Set page Title
 st.set_page_config(page_title="FM Moneyball", layout="wide")
@@ -15,6 +18,123 @@ def load_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
     df = derived_columns(df)
     return df
+
+## Column Grouping
+desc_cols = [
+    "Division",
+    "Club",
+    "Possession",
+    "Player",
+    "Best Pos",
+    "Sec. Position",
+    "Age",
+    "Height",
+    "Left Foot",
+    "Right Foot",
+    "Recurring Injury",
+    "Injury Susceptibility"
+    #"Wage",
+    #"Transfer Value", 
+]
+pad_cols = [
+    "P-ad Mins/Gl",
+    "P-ad G/90",
+    "P-ad NP-xG/90",
+    "P-ad xG/90",
+    "P-ad Shot/90",
+    "P-ad ShT/90",
+    "P-ad Longshots/90",
+    "P-ad Longshots Scored/90",
+    "P-ad A/90",
+    "P-ad xA/90",
+    "P-ad Passes/90",
+    "P-ad Ch C/90",
+    "P-ad OP-KP/90",
+    "P-ad Pr Passes/90",
+    "P-ad Crs A/90",
+    "P-ad Crs C/90",
+    "P-ad OP-Crs A/90",
+    "P-ad OP-Crs C/90",
+    "P-ad Db Crs A/90",
+    "P-ad Db Crs C/90",
+    "P-ad Drb/90",
+    "P-ad Fouls Drawn/90",
+    "P-ad Offside/90",
+    "P-ad Poss Lost/90",
+    "P-ad Poss Won/90",
+    "P-ad Int/90",
+    "P-ad Pres A/90",
+    "P-ad Clr/90",
+    "P-ad Shts Blckd/90",
+    "P-ad Fouls/90",
+    "P-ad xGP/90",
+]
+sho_cols = [
+    "Goals",
+    "Mins/Gl",
+    "Goals per 90 minutes",
+    "xG",
+    "NP-xG",
+    "xG-OP",
+    "xG/90",
+    "Conv %",
+    "xG/shot",
+    "Shot/90",
+    "ShT/90",
+    "Shots From Outside The Box Per 90 minutes",
+    "Shot %",
+    "Goals From Outside The Box",
+    "Pens",
+    "Pen/R",
+    "P-ad Mins/Gl",
+    "P-ad G/90",
+    "NP-xG/90",
+    "P-ad NP-xG/90",
+    "P-ad xG/90",
+    "P-ad Shot/90",
+    "P-ad ShT/90",
+    "P-ad Longshots/90",
+    "Longshots Scored/90",
+    "P-ad Longshots Scored/90"
+]
+pass_cols = [
+    "Assists",
+    "Asts/90",
+    "xA",
+    "xA/90",
+    "Pas %",
+    "Ps A/90",
+    "Ch C/90",
+    "OP-KP/90",
+    "Pr passes/90",
+    "OP-Crs A/90",
+    "OP-Crs C/90",
+    "OP-Cr %",
+    "P-ad A/90",
+    "P-ad xA/90",
+    "P-ad Passes/90",
+    "P-ad Ch C/90",
+    "P-ad OP-KP/90",
+    "P-ad Pr Passes/90",
+    "P-ad Crs A/90",
+    "P-ad Crs C/90",
+    "P-ad OP-Crs A/90",
+    "P-ad OP-Crs C/90"
+]
+#def_cols = [
+#gk_colss = [
+#phys_cols = [
+
+## Columns where lower is better
+INVERTED_COLS = [
+    "Mins/Gl",
+    "Poss Lost/90",
+    "Fouls Made",
+    "Yel",
+    "Red cards",
+    "Off",
+    "Goals Conceded",
+]
 
 ## Derived column funcitons
 def derived_columns(df):
@@ -141,8 +261,15 @@ uploaded_file = st.file_uploader("Upload FM CSV", type=["csv"])
 if uploaded_file:
     df = load_data(uploaded_file)
     
-    #Position Names
+    # Identify percentile columns
+    percentile_cols = [
+        col for col in df.columns
+        if col not in desc_cols
+    ]
+    
+    #Position names for dropdowns
     available_roles, available_sides = parse_positions(df["Best Pos"] + ", " + df["Sec. Position"])
+
     role_labels = {
         "GK": "Goalkeeper",
         "D": "Defender",
@@ -178,7 +305,7 @@ if uploaded_file:
     with col3:
         use_sec = st.checkbox("Include Secondary Positions", value=True)
 
-    # APPLY FILTER
+    # Apply position filter
     if use_sec:
         pos_data = df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna("")
     else:
@@ -190,3 +317,16 @@ if uploaded_file:
     st.write(f"{len(filtered_df)} players match filter")
     st.dataframe(filtered_df)
 
+    if len(filtered_df) > 0:
+        stat_cols = [c for c in filtered_df.columns if c not in desc_cols]
+        for col in stat_cols:
+            filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
+        
+        ## what columns in the percentiles - review later for custom selection
+        visible_cols=stat_cols
+
+        ## calculate percentiles for visible columns
+
+        if len(visible_cols) == 0 :
+            st.warning("Select at least one column to display")
+        
