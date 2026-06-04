@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import re
 
+## Idea: select team that won the league and use them as a comparison tool/best player in the league.
+
 # Page Setup
 ## Set page Title
 st.set_page_config(page_title="FM Moneyball", layout="wide")
@@ -32,6 +34,7 @@ desc_cols = [
     "Player",
     "Best Pos",
     "Sec. Position",
+    "Position",
     "Age",
     "Height",
     "Left Foot",
@@ -74,70 +77,74 @@ pad_cols = [
     "P-ad Fouls/90",
     "P-ad xGP/90",
 ]
-sho_cols = [
-    "Goals",
-    "Mins/Gl",
-    "Goals per 90 minutes",
-    "xG",
-    "NP-xG",
-    "xG-OP",
-    "xG/90",
-    "Conv %",
-    "xG/shot",
-    "Shot/90",
-    "ShT/90",
-    "Shots From Outside The Box Per 90 minutes",
-    "Shot %",
-    "Goals From Outside The Box",
-    "Pens",
-    "Pen/R",
-    "P-ad Mins/Gl",
-    "P-ad G/90",
-    "NP-xG/90",
-    "P-ad NP-xG/90",
-    "P-ad xG/90",
-    "P-ad Shot/90",
-    "P-ad ShT/90",
-    "P-ad Longshots/90",
-    "Longshots Scored/90",
-    "P-ad Longshots Scored/90"
-]
-pass_cols = [
-    "Assists",
-    "Asts/90",
-    "xA",
-    "xA/90",
-    "Pas %",
-    "Ps A/90",
-    "Ch C/90",
-    "OP-KP/90",
-    "Pr passes/90",
-    "OP-Crs A/90",
-    "OP-Crs C/90",
-    "OP-Cr %",
-    "P-ad A/90",
-    "P-ad xA/90",
-    "P-ad Passes/90",
-    "P-ad Ch C/90",
-    "P-ad OP-KP/90",
-    "P-ad Pr Passes/90",
-    "P-ad Crs A/90",
-    "P-ad Crs C/90",
-    "P-ad OP-Crs A/90",
-    "P-ad OP-Crs C/90"
-]
-#def_cols = [
-#gk_colss = [
-#phys_cols = [
+position_stat_groups = {
+    "ST": [
+       "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", 
+       "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
+       "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", 
+       "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Ps A/90", "Ch C/90",
+       "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90",
+       "OP-Crs C/90", "OP-Cr %", "Drb/90", "Poss Lost/90",
+       "Poss Won/90", "Pres A/90", "Tck R","Dist/90", "Sprints/90", "Aer A/90", "Hdr %",
+       "K Hdrs/90", "Tgls/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
+       "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
+       "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
+       "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
+       "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
+       "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
+       "P-ad Offside/90", "P-ad Poss Lost/90","Fouls/90", "P-ad Pres A/90","P-ad Fouls/90",
+       "Fouls/Yellow", "Fouls/Red", "Shot Bias", "Risky Pass Rate"
+    ],
+    "AM": [
+        "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP",
+        "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes",
+        "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90",
+        "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A",
+        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Poss Lost/90",
+        "Poss Won/90", "Pres A/90", "Tck R", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %",
+        "K Hdrs/90", "Tgls/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
+        "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
+        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
+        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
+        "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
+        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
+        "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "P-ad Pres A/90", "Fouls/Yellow",
+        "Fouls/Red", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+    ],
+    "M": [
+        "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+    ],
+    "DM": [
+        "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+    ],
+    "WB": [
+        "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+    ],
+    "D": [
+        "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+        "Fouls/Yellow",
+    ],
+    "GK": [
+        "Clean Sheets", "xGP", "xGP/90", "MLG", "Sv %",
+        "Svh", "Svp", "Svt", "Goals Conceded",
+        "Pens Faced", "Pens Saved Ratio",
+        "Saves/90", "SvH Ratio",
+        "P-ad xGP/90", "P-ad Saves/90",
+    ],
+}
 
 ## Columns where lower is better
 INVERTED_COLS = [
     "Mins/Gl",
+    "P-ad Mins/Gl",
     "Poss Lost/90",
+    "P-ad Poss Lost/90",
     "Fouls Made",
     "Yel",
     "Red cards",
     "Off",
+    "Offside/90",
+    "P-ad Offside/90",
     "Goals Conceded",
 ]
 
@@ -335,17 +342,22 @@ if uploaded_file:
     filtered_df = df[mask].copy()
 
     st.write(f"{len(filtered_df)} players match filter")
+    st.write("#### Raw Player Data")
+
     st.dataframe(filtered_df)
 
     if len(filtered_df) > 0:
         stat_cols = [c for c in filtered_df.columns if c not in desc_cols]
         for col in stat_cols:
-            filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
+            filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce") #need to convert percentages to a number
         
-        ## what columns in the percentiles - review later for custom selection
-        visible_cols=stat_cols
+        ## what columns in the percentiles
+        # Get position-specific columns
+        visible_cols = position_stat_groups.get(selected_role, stat_cols)
+        # Only keep columns that actually exist in the dataframe
+        visible_cols = [c for c in visible_cols if c in filtered_df.columns]
 
-        #        ## calculate percentiles for visible columns
+        # calculate percentiles for visible columns
 
         if len(visible_cols) == 0:
             st.warning("Select at least one column to display")
@@ -363,4 +375,14 @@ if uploaded_file:
             percentile_df[visible_cols] = (percentile_df[visible_cols] * 100).round(0)
             
             st.markdown("#### Percentile Rankings")
-            st.dataframe(percentile_df, use_container_width=True)
+            
+            # Style with red-to-green gradient
+            styled_df = percentile_df.style.background_gradient(
+                cmap='RdYlGn',
+                subset=visible_cols,
+                vmin=0,
+                vmax=100
+            ).format(subset=visible_cols, precision=0)
+            
+            st.dataframe(styled_df, use_container_width=True)
+
