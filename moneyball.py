@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
+import unicodedata
 
 ## Idea: select team that won the league and use them as a comparison tool/best player in the league.
 
@@ -12,16 +13,25 @@ st.title("FM26 Moneyball App")
 
 
 # Data Functions and processing
+## Match accents
+def strip_accents(text):
+    return ''.join(c for c in unicodedata.normalize('NFKD', str(text)) if not unicodedata.category(c).startswith('M'))
+
+
 ## File uploader
 def load_data(uploaded_file, possession_file):
     df = pd.read_csv(uploaded_file, sep=';')
     
-    # Load and process possession lookup
+    # load and process possession data
     df_poss = pd.read_csv(possession_file)
     df_poss['Possession'] = df_poss['Possession'].str.rstrip('%').astype(float) / 100
     
-    # Merge possession onto player data
-    df = df.merge(df_poss, on='Club', how='left')
+    # Match on accent-stripped club names
+    df['_key'] = df['Club'].apply(strip_accents)
+    df_poss['_key'] = df_poss['Club'].apply(strip_accents)
+    
+    df = df.merge(df_poss[['_key', 'Possession']], on='_key', how='left')
+    df.drop(columns=['_key'], inplace=True)
     
     df = derived_columns(df)
     return df
