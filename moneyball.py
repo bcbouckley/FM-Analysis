@@ -153,19 +153,16 @@ position_stat_groups = {
         "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
     ],
     "D": [
-        "Rating", "PoM", "Pens", "Pen/R", "Asts/90", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90",
-        "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
-        "Drb/90", "Fouls Against", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90",
-        "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards",
-        "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Tcon/90", "NP-xG/90", "P-ad NP-xG/90",
-        "P-ad xG/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90",
-        "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90",
-        "Db Crs C/90", "Db Crs %", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "Db Crs A/90", "Db Crs C/90",
-        "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
-        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "P-ad Poss Lost/90",
-        "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90",
-        "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "Progressive Rate",
-        "Risky Pass Rate"
+        "Poss Won/90", "Tck/90", "K Tck/90", "Int/90", "Tck R", "Blk/90", "Shts Blckd/90", "Pres A/90",
+        "Pas %", "Pr passes/90", "Drb/90", "Poss Lost/90", "Progressive Rate", "Risky Pass Rate",
+        "Aer A/90", "Hdr %", "K Hdrs/90", "Clr/90", 
+        "Yel", "Red cards", "Fouls/90",
+        
+        "P-ad Poss Won/90", "P-ad K Tck/90", "P-ad Int/90", "P-ad Shts Blckd/90", "P-ad Pres A/90",
+        "P-ad Pr Passes/90", "P-ad Drb/90", "P-ad Poss Lost/90", 
+        "P-ad Clr/90",
+        "P-ad Fouls/90",
+        "Goals",
 
     ],
     "GK": [
@@ -233,13 +230,14 @@ def derived_columns(df):
     df["P-ad Poss Won/90"] = df["Poss Won/90"] / (1-df["Possession"])
     #Defending
     df["Tck A/90"] = df["Tck A"] / df["Minutes"] * 90
-    df["Tck C/90"] = df["Tck A/90"] * df["Tck R"] / 100
+    df["Tck C/90"] = df["Tck A/90"] * df["Tck R"] / 100 # pad needed
     df["K Tck/90"] = df["K Tck"] / df["Minutes"] * 90
     df["Fouls/90"] = df["Fouls Made"] / df["Minutes"] * 90
     df["P-ad Int/90"] = df["Int/90"] / (1-df["Possession"])
     df["P-ad Pres A/90"] = df["Pres A/90"] / (1-df["Possession"])
     df["P-ad Clr/90"] = df["Clr/90"] / (1-df["Possession"])
     df["P-ad Shts Blckd/90"] = df["Shts Blckd/90"] / (1-df["Possession"])
+    df["P-ad K Tck/90"] = df["K Tck/90"] / (1-df["Possession"])
     df["P-ad Fouls/90"] = df["Fouls/90"] / (1-df["Possession"])
     df["Fouls/Yellow"] = df["Fouls Made"] / df["Yel"]
     df["Fouls/Red"] = df["Fouls Made"] / df["Red cards"]
