@@ -89,21 +89,21 @@ pad_cols = [
 ]
 position_stat_groups = {
     "ST": [
-       "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", 
-       "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
-       "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", 
-       "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Ps A/90", "Ch C/90",
-       "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90",
-       "OP-Crs C/90", "OP-Cr %", "Drb/90", "Poss Lost/90",
-       "Poss Won/90", "Pres A/90", "Tck R","Dist/90", "Sprints/90", "Aer A/90", "Hdr %",
-       "K Hdrs/90", "Tgls/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
-       "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
-       "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
-       "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
-       "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
-       "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
-       "P-ad Offside/90", "P-ad Poss Lost/90","Fouls/90", "P-ad Pres A/90","P-ad Fouls/90",
-       "Fouls/Yellow", "Fouls/Red", "Shot Bias", "Risky Pass Rate"
+        "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", 
+        "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
+        "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", 
+        "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Ps A/90", "Ch C/90",
+        "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90",
+        "OP-Crs C/90", "OP-Cr %", "Drb/90", "Poss Lost/90",
+        "Poss Won/90", "Pres A/90", "Tck R","Dist/90", "Sprints/90", "Aer A/90", "Hdr %",
+        "K Hdrs/90", "Tgls/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
+        "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
+        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
+        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
+        "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
+        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
+        "P-ad Offside/90", "P-ad Poss Lost/90","Fouls/90", "P-ad Pres A/90","P-ad Fouls/90",
+        "Fouls/Yellow", "Fouls/Red", "Shot Bias", "Risky Pass Rate"
     ],
     "AM": [
         "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP",
@@ -355,10 +355,12 @@ if uploaded_file:
         "R": "Right",
         "C": "Centre"}
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # Dropdowns for position and sides
-    st.markdown("#### Positon Selection")
-    col1, col2, col3 = st.columns(3)
+    st.markdown("#### Position Selection")
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         role_options = [f"{r} - {role_labels.get(r, r)}" for r in available_roles]
@@ -378,6 +380,9 @@ if uploaded_file:
     with col3:
         use_sec = st.checkbox("Include Secondary Positions", value=True)
 
+    with col4:
+        u23_only = st.toggle("U23 Only")
+
     # Apply position filter
     if use_sec:
         pos_data = df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna("")
@@ -385,13 +390,21 @@ if uploaded_file:
         pos_data = df["Best Pos"].fillna("")
     
     mask = build_position_mask(pos_data, selected_role, selected_sides)
+    if u23_only:
+        mask = mask & (df["Age"] < 23)
     filtered_df = df[mask].copy()
+    
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
     st.write(f"{len(filtered_df)} players match filter")
     #st.write("#### Raw Player Data")
 
     with st.expander("Raw Player Data", expanded=False):
-        st.dataframe(filtered_df)
+        raw_display = filtered_df.set_index(["Player", "Age", "Club", "Transfer Value"])
+        st.dataframe(raw_display, use_container_width=True, height=600)
+    
 
     if len(filtered_df) > 0:
         stat_cols = [c for c in filtered_df.columns if c not in desc_cols]
@@ -410,7 +423,7 @@ if uploaded_file:
             st.warning("Select at least one column to display")
         else:
             # Calculate percentiles within the filtered position group
-            percentile_df = filtered_df[["Player", "Club"]].copy()
+            percentile_df = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
             
             for col in visible_cols:
                 if col in INVERTED_COLS:
@@ -423,8 +436,10 @@ if uploaded_file:
             
             #st.markdown("#### Percentile Rankings")
             
+            percentile_display = percentile_df.set_index(["Player", "Age", "Club", "Transfer Value"])
+
             # Style with red-to-green gradient
-            styled_df = percentile_df.style.background_gradient(
+            styled_df = percentile_display.style.background_gradient(
                 cmap='RdYlGn',
                 subset=visible_cols,
                 vmin=0,
@@ -432,5 +447,5 @@ if uploaded_file:
             ).format(subset=visible_cols, precision=0)
             
             with st.expander("Percentile Rankings", expanded=False):
-                st.dataframe(styled_df, use_container_width=True)
+                st.dataframe(styled_df, use_container_width=True, height=600)
 
