@@ -70,7 +70,7 @@ pizzacat= {
     "Possession": [
         {"name": "Ball retention", "method": "single", "col": "Pas %"},
         {"name": "Link-up play", "method": "single", "col": "Link-up Rate"},
-        {"name": "Progressive passing", "method": "single", "col": "Pr passes/90"},
+        {"name": "Progressive Rate", "method": "single", "col": "Progressive Rate"},
     ],
     "Progression": [
         {"name": "Creative threat", "method": "derived_composite",
@@ -78,7 +78,7 @@ pizzacat= {
         {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
         {"name": "OP crossing volume", "method": "single", "col": "Crs Volume"},
         {"name": "OP crossing accuracy", "method": "single", "col": "OP-Cr %"},
-        {"name": "Progressive Rate", "method": "single", "col": "Progressive Rate"},
+        {"name": "Progressive Volume", "method": "single", "col": "Pr passes/90"},
         {"name": "Dribble Volume", "method": "single", "col": "Drb Vol"},
     ],
     "Attack": [
@@ -344,34 +344,16 @@ position_stat_groups = {
         "P-ad Fouls/90",
     ],
     "GK": [
-        ### Passing
-        "Pr passes/90", "Progressive Rate",
-        "Pas %", "Ps A/90", "Poss Lost/90",
+        ### Goalkeeping
+        "Clean Sheets", "xGP Rate", "P-ad xGP/90", "Sv %", "SvH Ratio", "MLG",
+        #"xGP/90", "P-ad Saves/90", "Saves/90","Pens Saved Ratio",
 
-        ### Player Movement
-        "Drb/90",
+        ### Passing
+        "Pas %", "Progressive Rate", "P-ad Poss Lost/90",
+        #"P-ad Pr Passes/90", "Pr passes/90", "Poss Lost/90", "P-ad Passes/90", "Ps A/90",
 
         ### Physicality - running
-        "Dist/90", "Sprints/90",
-
-        ### Physicality - Heading
-        "Aer A/90",
-
-        ### Goalkeeping
-        "Saves/90", "xGP/90", "Sv %", "SvH Ratio", "MLG", "Clean Sheets", "Pens Saved Ratio",
-
-
-        ## Possession Adjusted
-
-        ### Passing
-        "P-ad Pr Passes/90",
-        "P-ad Passes/90", "P-ad Poss Lost/90",
-
-        ### Player Movement
-        "P-ad Drb/90",
-
-        ### Goalkeeping
-        "P-ad Saves/90", "P-ad xGP/90",
+        "Dist/90",
     ],
 }
 
@@ -388,10 +370,16 @@ INVERTED_COLS = [
     "Offside/90",
     "P-ad Offside/90",
     "Goals Conceded",
+    "MLG",
 ]
 
 ## Derived column funcitons
 def derived_columns(df):
+    # Strip % from percentage columns
+    pct_cols = ["Conv %", "Shot %", "Pas %"]
+    for col in pct_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.rstrip('%').astype(float)
     #Shooting
     df["P-ad Mins/Gl"] = df["Mins/Gl"] * df["Possession"]
     df["P-ad G/90"] = df["Goals per 90 minutes"] / df["Possession"]
@@ -451,6 +439,7 @@ def derived_columns(df):
     df["Saves/90"] = (df["Svh"] + df["Svp"] + df["Svt"])  / df["Minutes"] * 90
     df["SvH Ratio"] = df["Svh"] / (df["Svh"] + df["Svp"] + df["Svt"])
     df["P-ad Saves/90"] = df["Saves/90"] / (1-df["Possession"])
+    df["xGP Rate"] = df["xGP/90"] / df["Tcon/90"] * 100
     #Future additions to index intention:
     df["Shot Bias"] = df["Shot/90"] / df["Ps A/90"] * 100
     df["Progressive Rate"] = df["Pr passes/90"] / df["Ps A/90"] * 100
@@ -548,7 +537,7 @@ if uploaded_file:
     ]
     
     #Position names for dropdowns
-    available_roles, available_sides = parse_positions(df["Best Pos"] + ", " + df["Sec. Position"])
+    available_roles, available_sides = parse_positions(df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna(""))
 
     role_labels = {
         "GK": "Goalkeeper",
@@ -663,14 +652,14 @@ if uploaded_file:
             st.divider()
             st.markdown("#### Pizza Stats")
             
-            pizza_df = filtered_df[["Player"]].copy()
-            
+            filtered_pizza = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
+
             for category, metrics in pizzacat.items():
                 for metric in metrics:
                     if metric["method"] == "single":
                         col = metric["col"]
                         if col in filtered_df.columns:
-                            pizza_df[metric["name"]] = filtered_df[col].rank(pct=True) * 100
+                            filtered_pizza[metric["name"]] = filtered_df[col].rank(pct=True) * 100
                     elif metric["method"] == "derived_composite":
                         # Average the percentile ranks of all components
                         component_ranks = []
@@ -678,16 +667,42 @@ if uploaded_file:
                             if comp in filtered_df.columns:
                                 component_ranks.append(filtered_df[comp].rank(pct=True))
                         if component_ranks:
-                            pizza_df[metric["name"]] = (sum(component_ranks) / len(component_ranks)) * 100
+                            filtered_pizza[metric["name"]] = (sum(component_ranks) / len(component_ranks)) * 100
             
-            pizza_df = pizza_df.round(0)
-            pizza_display = pizza_df.set_index("Player")
+            filtered_pizza = filtered_pizza.round(0).set_index(["Player", "Age", "Club", "Transfer Value"])
             
-            styled_pizza = pizza_display.style.background_gradient(
+            styled_filtered_pizza = filtered_pizza.style.background_gradient(
                 cmap='RdYlGn',
                 vmin=0,
                 vmax=100
             ).format(precision=0)
             
             with st.expander("Pizza Stats", expanded=False):
-                st.dataframe(styled_pizza, use_container_width=True, height=600)
+                st.dataframe(styled_filtered_pizza, use_container_width=True, height=600)
+
+
+
+
+                        # Category summary scores
+            category_names = []
+            for category, metrics in pizzacat.items():
+                metric_names = [m["name"] for m in metrics if m["name"] in filtered_pizza.columns]
+                if metric_names:
+                    filtered_pizza[category] = filtered_pizza[metric_names].mean(axis=1).round(0)
+                    category_names.append(category)
+            
+            pizza_summary = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
+            for cat in category_names:
+                pizza_summary[cat] = filtered_pizza[cat].values
+            
+            pizza_summary_display = pizza_summary.set_index(["Player", "Age", "Club", "Transfer Value"])
+            
+            styled_filtered_pizza_summary = pizza_summary_display.style.background_gradient(
+                cmap='RdYlGn',
+                subset=category_names,
+                vmin=0,
+                vmax=100
+            ).format(subset=category_names, precision=0)
+            
+            with st.expander("Pizza Summary", expanded=False):
+                st.dataframe(styled_filtered_pizza_summary, use_container_width=True, height=600)
