@@ -54,39 +54,41 @@ desc_cols = [
     "Wage",
     "Transfer Value", 
 ]
-pad_cols = [
-    "P-ad Mins/Gl",
-    "P-ad G/90",
-    "P-ad NP-xG/90",
-    "P-ad xG/90",
-    "P-ad Shot/90",
-    "P-ad ShT/90",
-    "P-ad Longshots/90",
-    "P-ad Longshots Scored/90",
-    "P-ad A/90",
-    "P-ad xA/90",
-    "P-ad Passes/90",
-    "P-ad Ch C/90",
-    "P-ad OP-KP/90",
-    "P-ad Pr Passes/90",
-    "P-ad Crs A/90",
-    "P-ad Crs C/90",
-    "P-ad OP-Crs A/90",
-    "P-ad OP-Crs C/90",
-    "P-ad Db Crs A/90",
-    "P-ad Db Crs C/90",
-    "P-ad Drb/90",
-    "P-ad Fouls Drawn/90",
-    "P-ad Offside/90",
-    "P-ad Poss Lost/90",
-    "P-ad Poss Won/90",
-    "P-ad Int/90",
-    "P-ad Pres A/90",
-    "P-ad Clr/90",
-    "P-ad Shts Blckd/90",
-    "P-ad Fouls/90",
-    "P-ad xGP/90",
-]
+# Add stats per touch
+# Add pizza group stats
+pizzacat= {
+    "Defence": [
+        {"name": "Front-foot defending", "method": "derived_composite", 
+        "components": ["P-ad Tck/90", "P-ad Int/90", "Pres A/90", "P-ad Fouls/90", "P-ad Blk/90"]},
+        {"name": "Tackle success", "method": "single", "col": "Tck R"},
+        {"name": "Back-foot defending", "method": "derived_composite",
+        "components": ["P-ad Shts Blckd/90", "P-ad Clr/90"]},
+        {"name": "Loose ball recoveries", "method": "single", "col": "P-ad Poss Won/90"},
+        {"name": "Aerial volume", "method": "single", "col": "Aer A/90"},
+        {"name": "Aerial success", "method": "single", "col": "Hdr %"},
+    ],
+    "Possession": [
+        {"name": "Ball retention", "method": "single", "col": "Pas %"},
+        {"name": "Link-up play", "method": "single", "col": "Link-up Rate"},
+        {"name": "Progressive passing", "method": "single", "col": "Pr passes/90"},
+    ],
+    "Progression": [
+        {"name": "Creative threat", "method": "derived_composite",
+        "components": ["xA/90","Asts/90"]},
+        {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
+        {"name": "OP crossing volume", "method": "single", "col": "Crs Volume"},
+        {"name": "OP crossing accuracy", "method": "single", "col": "OP-Cr %"},
+        {"name": "Progressive Rate", "method": "single", "col": "Progressive Rate"},
+        {"name": "Dribble Volume", "method": "single", "col": "Drb Vol"},
+    ],
+    "Attack": [
+        {"name": "Goal threat", "method": "derived_composite",
+        "components": ["xG/90", "Goals/90_derived"]},
+        {"name": "Shot frequency", "method": "single", "col": "Shot/90"},
+        {"name": "Shot quality", "method": "single", "col": "xG/shot"},
+    ],
+}
+
 position_stat_groups = {
     "ST": [
         # Scoring
@@ -192,7 +194,7 @@ position_stat_groups = {
 
         ### Defending
         "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
         
         ### Discipline
         "P-ad Fouls/90",
@@ -237,7 +239,7 @@ position_stat_groups = {
 
         ### Defending
         "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
         "P-ad Shts Blckd/90", "P-ad Clr/90", 
 
         ### Discipline
@@ -290,7 +292,7 @@ position_stat_groups = {
 
         ### Defending
         "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
 
         ### Scoring
         "P-ad NP-xG/90", "P-ad Shot/90",
@@ -328,7 +330,7 @@ position_stat_groups = {
         
         ### Defending
         "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
         "P-ad Shts Blckd/90", "P-ad Clr/90", 
         
         ### Passing
@@ -436,6 +438,9 @@ def derived_columns(df):
     df["P-ad Pres A/90"] = df["Pres A/90"] / (1-df["Possession"])
     df["P-ad Clr/90"] = df["Clr/90"] / (1-df["Possession"])
     df["P-ad Shts Blckd/90"] = df["Shts Blckd/90"] / (1-df["Possession"])
+    df["P-ad Blk/90"] = df["Blk/90"] / (1-df["Possession"])
+    df["P-ad Tck/90"] = df["Tck/90"] / (1-df["Possession"])
+    df["P-ad Tck A/90"] = df["Tck A/90"] / (1-df["Possession"])
     df["P-ad K Tck/90"] = df["K Tck/90"] / (1-df["Possession"])
     df["P-ad Fouls/90"] = df["Fouls/90"] / (1-df["Possession"])
     df["Fouls/Yellow"] = df["Fouls Made"] / df["Yel"]
@@ -450,6 +455,13 @@ def derived_columns(df):
     df["Shot Bias"] = df["Shot/90"] / df["Ps A/90"] * 100
     df["Progressive Rate"] = df["Pr passes/90"] / df["Ps A/90"] * 100
     df["Risky Pass Rate"] = df["OP-KP/90"] / df["Ps A/90"] * 100
+    df["Link-up Rate"] = (df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]) / df["Ps A/90"] * 100
+    df["Link-up Volume/90"] = df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]
+    df["P-ad Link-up Volume/90"] = df["Link-up Volume/90"] / df["Possession"]
+    df["Touches/90"] = df["Shot/90"] + df["Drb/90"] + df["Ps A/90"] + df["Poss Lost/90"]
+    df["Drb Vol"] = df["Drb/90"] / df["Touches/90"] 
+    df["Crs Volume"] = df["OP-Crs A/90"] / df["Touches/90"] 
+
     return df
 
 # Position Logic Functions
@@ -565,13 +577,14 @@ if uploaded_file:
 
     with col2:
         side_options = [s for s in available_sides]
-        selected_sides_display = st.multiselect(
+        selected_sides_display = st.selectbox(
             "Side(s)",
             available_sides,
+            index=None,
             format_func=lambda x: side_labels.get(x, x),
             help="Leave empty to ignore sides (GK/DM/ST etc) & Player must be able to play ALL selected sides"
     )
-    selected_sides = set(selected_sides_display)
+    selected_sides = {selected_sides_display} if selected_sides_display else set()
 
     with col3:
         use_sec = st.checkbox("Include Secondary Positions", value=True)
@@ -644,8 +657,37 @@ if uploaded_file:
             
             with st.expander("Percentile Rankings", expanded=False):
                 st.dataframe(styled_df, use_container_width=True, height=600)
+    
 
+                # Pizza chart composite stats
+            st.divider()
+            st.markdown("#### Pizza Stats")
             
-st.dataframe(filtered_df)
-df_no_pad = filtered_df.loc[:, ~filtered_df.columns.str.contains('P-ad')]
-st.dataframe(df_no_pad)
+            pizza_df = filtered_df[["Player"]].copy()
+            
+            for category, metrics in pizzacat.items():
+                for metric in metrics:
+                    if metric["method"] == "single":
+                        col = metric["col"]
+                        if col in filtered_df.columns:
+                            pizza_df[metric["name"]] = filtered_df[col].rank(pct=True) * 100
+                    elif metric["method"] == "derived_composite":
+                        # Average the percentile ranks of all components
+                        component_ranks = []
+                        for comp in metric["components"]:
+                            if comp in filtered_df.columns:
+                                component_ranks.append(filtered_df[comp].rank(pct=True))
+                        if component_ranks:
+                            pizza_df[metric["name"]] = (sum(component_ranks) / len(component_ranks)) * 100
+            
+            pizza_df = pizza_df.round(0)
+            pizza_display = pizza_df.set_index("Player")
+            
+            styled_pizza = pizza_display.style.background_gradient(
+                cmap='RdYlGn',
+                vmin=0,
+                vmax=100
+            ).format(precision=0)
+            
+            with st.expander("Pizza Stats", expanded=False):
+                st.dataframe(styled_pizza, use_container_width=True, height=600)
