@@ -147,56 +147,229 @@ position_stat_groups = {
         "Fouls/Yellow", "Fouls/Red",
     ],
     "M": [
-        "Rating", "PoM", "xG/shot", "Shot/90", "Shots From Outside The Box Per 90 minutes",
-        "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA",
-        "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90",
-        "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against",
-        "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Yel", "Red cards",
-        "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Tgls/90", "Tcon/90", "NP-xG/90",
-        "P-ad NP-xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
-        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
-        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
-        "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
-        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "P-ad Poss Lost/90",
-        "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90",
-        "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+        # Combined important data
+
+
+        ### Scoring
+        "xG/shot", "Shot/90", "ShT/90",
+        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
+
+
+        ### Passing
+        "Asts/90", "xA/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+        "Pr passes/90", "Progressive Rate",
+        "Pas %", "Ps A/90", "Poss Lost/90",
+
+        ### Player Movement
+        "Drb/90", "Fouls Drawn/90",
+
+        ### Defending
+        "Int/90", "Poss Won/90",
+        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
+
+        ### Physicality - running
+        "Dist/90", "Sprints/90",
+
+        ### Physicality - Heading
+        "Aer A/90", "Hdr %", "K Hdrs/90",
+
+        ### Discipline
+        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
+
+        ## Possession Adjusted
+
+        ### Scoring
+        "P-ad Shot/90", "P-ad ShT/90",
+        "P-ad Longshots Scored/90", "P-ad Longshots/90", 
+
+        ### Passing
+        "P-ad A/90", "P-ad xA/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+        "P-ad Pr Passes/90",
+        "P-ad Passes/90", "P-ad Poss Lost/90",
+
+        ### Player Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90",
+
+        ### Defending
+        "P-ad Int/90", "P-ad Poss Won/90",
+        "P-ad Pres A/90", "P-ad K Tck/90",
+        
+        ### Discipline
+        "P-ad Fouls/90",
     ],
     "DM": [
-        "Rating", "PoM", "NP-xG", "xG/shot", "Shots From Outside The Box Per 90 minutes",
-        "Goals From Outside The Box", "Pens", "Pen/R", "Asts/90", "xA/90", "Pas %", "Ps A/90",
-        "Ch C/90", "OP-KP/90", "Pr passes/90", "Drb/90", "Fouls Against", "Poss Lost/90", "Poss Won/90",
-        "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90",
-        "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90",
-        "Tcon/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Longshots/90", "Longshots Scored/90",
-        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
-        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Db Crs A/90",
-        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "P-ad Poss Lost/90"
-        "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90",
-        "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "Progressive Rate",
-        "Risky Pass Rate"
-    ],
-    "WB": [
-        "Rating", "PoM", "Minutes", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90", "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Off", "Poss Lost/90", "Poss Won/90", "Tck/90", "Int/90", "Pres A/90", "Tck R", "Tck A", "K Tck", "Blk/90", "Clr/90", "Shts Blckd/90", "Fouls Made", "Yel", "Red cards", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90", "Clean Sheets", "xGP", "MLG", "Sv %", "Svh", "Svp", "Svt", "Goals Conceded", "Pens Faced", "Pens Saved Ratio", "Tgls/90", "Tcon/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90", "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90", "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %", "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90", "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90", "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "Tck A/90", "Tck C/90", "K Tck/90", "Fouls/90", "P-ad Int/90", "P-ad Pres A/90", "P-ad Clr/90", "P-ad Shts Blckd/90", "P-ad Fouls/90", "Fouls/Yellow", "Fouls/Red", "xGP/90", "P-ad xGP/90", "Saves/90", "SvH Ratio", "P-ad Saves/90", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
-    ],
-    "D": [
-        "Poss Won/90", "Tck/90", "K Tck/90", "Int/90", "Tck R", "Blk/90", "Shts Blckd/90", "Pres A/90",
-        "Pas %", "Pr passes/90", "Drb/90", "Poss Lost/90", "Progressive Rate", "Risky Pass Rate",
-        "Aer A/90", "Hdr %", "K Hdrs/90", "Clr/90", 
-        "Yel", "Red cards", "Fouls/90",
+        ### Passing
+        "Pr passes/90", "Progressive Rate",
+        "Pas %", "Ps A/90", "Poss Lost/90",
+        "Asts/90", "xA/90",  "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+
+        ### Player Movement
+        "Drb/90", "Fouls Drawn/90",
+
+        ### Defending
+        "Int/90", "Poss Won/90",
+        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
+        "Blk/90","Shts Blckd/90",  "Clr/90",
+
+        ### Discipline
+        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
+
+        ### Physicality - running
+        "Dist/90", "Sprints/90",
+
+        ### Physicality - Heading
+        "Aer A/90", "Hdr %", "K Hdrs/90",
         
-        "P-ad Poss Won/90", "P-ad K Tck/90", "P-ad Int/90", "P-ad Shts Blckd/90", "P-ad Pres A/90",
-        "P-ad Pr Passes/90", "P-ad Drb/90", "P-ad Poss Lost/90", 
-        "P-ad Clr/90",
+        ### Scoring
+        "NP-xG/90", "xG/shot", "Shot/90",
+        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes",
+
+
+        ## Possession Adjusted
+
+        ### Passing
+        "P-ad Pr Passes/90",
+        "P-ad Passes/90", "P-ad Poss Lost/90",
+        "P-ad A/90", "P-ad xA/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+
+        ### Player Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90",
+
+        ### Defending
+        "P-ad Int/90", "P-ad Poss Won/90",
+        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Shts Blckd/90", "P-ad Clr/90", 
+
+        ### Discipline
         "P-ad Fouls/90",
-        "Goals",
+        
+        ### Scoring
+        "P-ad NP-xG/90", "P-ad Shot/90",
+        "P-ad Longshots Scored/90", "P-ad Longshots/90", 
 
     ],
+    "WB": [
+        ### Passing
+        "Asts/90", "xA/90",  "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+        "Pr passes/90", "Progressive Rate",
+        "Pas %", "Ps A/90", "Poss Lost/90",
+
+        ### Crossing Open Play
+        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", 
+
+        ### Player Movement
+        "Drb/90", "Fouls Drawn/90", "Offside/90",
+
+        ### Defending
+        "Int/90", "Poss Won/90",
+        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
+        
+        ### Scoring
+        "NP-xG/90", "Shot/90",
+        "Longshots Scored/90",
+
+        ### Physicality - running
+        "Dist/90", "Sprints/90",
+        
+        ### Discipline
+        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
+
+
+        ## Possession Adjusted
+
+        ### Passing
+        "P-ad A/90", "P-ad xA/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+        "P-ad Pr Passes/90",
+        "P-ad Passes/90", "P-ad Poss Lost/90",
+
+        ### Crossing Open Play
+        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
+
+        ### Player Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90",
+
+        ### Defending
+        "P-ad Int/90", "P-ad Poss Won/90",
+        "P-ad Pres A/90", "P-ad K Tck/90",
+
+        ### Scoring
+        "P-ad NP-xG/90", "P-ad Shot/90",
+        "P-ad Longshots Scored/90",
+        
+
+        ### Discipline
+        "P-ad Fouls/90",
+    ],
+    "D": [
+        ### Defending
+        "Int/90", "Poss Won/90",
+        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
+        "Blk/90","Shts Blckd/90",  "Clr/90",
+
+        ### Physicality - Heading
+        "Aer A/90", "Hdr %", "K Hdrs/90",
+
+
+        ### Passing
+        "Pr passes/90", "Progressive Rate",
+        "Pas %", "Ps A/90", "Poss Lost/90",
+
+        ### Player Movement
+        "Drb/90", "Fouls Drawn/90",
+
+        ### Discipline
+        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
+
+        ### Physicality - running
+        "Dist/90", "Sprints/90",
+        
+
+        ## Possession Adjusted
+        
+        ### Defending
+        "P-ad Int/90", "P-ad Poss Won/90",
+        "P-ad Pres A/90", "P-ad K Tck/90",
+        "P-ad Shts Blckd/90", "P-ad Clr/90", 
+        
+        ### Passing
+        "P-ad Pr Passes/90",
+        "P-ad Passes/90", "P-ad Poss Lost/90",
+
+        ### Player Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90",
+
+        ### Discipline
+        "P-ad Fouls/90",
+    ],
     "GK": [
-        "Clean Sheets", "xGP", "xGP/90", "MLG", "Sv %",
-        "Svh", "Svp", "Svt", "Goals Conceded",
-        "Pens Faced", "Pens Saved Ratio",
-        "Saves/90", "SvH Ratio",
-        "P-ad xGP/90", "P-ad Saves/90",
+        ### Passing
+        "Pr passes/90", "Progressive Rate",
+        "Pas %", "Ps A/90", "Poss Lost/90",
+
+        ### Player Movement
+        "Drb/90",
+
+        ### Physicality - running
+        "Dist/90", "Sprints/90",
+
+        ### Physicality - Heading
+        "Aer A/90",
+
+        ### Goalkeeping
+        "Saves/90", "xGP/90", "Sv %", "SvH Ratio", "MLG", "Clean Sheets", "Pens Saved Ratio",
+
+
+        ## Possession Adjusted
+
+        ### Passing
+        "P-ad Pr Passes/90",
+        "P-ad Passes/90", "P-ad Poss Lost/90",
+
+        ### Player Movement
+        "P-ad Drb/90",
+
+        ### Goalkeeping
+        "P-ad Saves/90", "P-ad xGP/90",
     ],
 }
 
