@@ -89,36 +89,62 @@ pad_cols = [
 ]
 position_stat_groups = {
     "ST": [
-        "Rating", "Goals", "Goals per 90 minutes", 
-        "xG-OP", "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
-        "Shots From Outside The Box Per 90 minutes", "Shot %", "Goals From Outside The Box", 
-        "Pens", "Pen/R", "Assists", "Asts/90", "xA/90", "Ps A/90", "Ch C/90",
-        "OP-KP/90", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Poss Lost/90",
-        "Poss Won/90", "Pres A/90", "Tck R", "Sprints/90", "Aer A/90", "Hdr %",
-        "K Hdrs/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
-        "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
-        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
-        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
-        "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
-        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
-        "P-ad Offside/90", "P-ad Poss Lost/90","Fouls/90", "P-ad Pres A/90","P-ad Fouls/90",
-        "Fouls/Yellow", "Fouls/Red", "Shot Bias", "Risky Pass Rate"
+        # Scoring
+        "Goals per 90 minutes", "NP-xG/90", "xG-OP", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
+        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
+        "Shot Bias",
+        # Passing
+        "Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+        # Crossing
+        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
+        # Movement
+        "Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90",
+        # Defending
+        "Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
+        # Physicality
+        "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90",
+
+        # Scoring
+        "P-ad G/90", "P-ad NP-xG/90", "P-ad Shot/90", "P-ad ShT/90",
+        "P-ad Longshots Scored/90", "P-ad Longshots/90",
+        # Passing
+        "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+        # Crossing
+        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
+        # Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
+        # Defending
+        "P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90",
+        "Fouls/Yellow", "Fouls/Red",
     ],
     "AM": [
-        "Rating", "PoM", "Goals", "Mins/Gl", "Goals per 90 minutes", "xG", "NP-xG", "xG-OP",
-        "xG/90", "Conv %", "xG/shot", "Shot/90", "ShT/90", "Shots From Outside The Box Per 90 minutes",
-        "Shot %", "Goals From Outside The Box", "Pens", "Pen/R", "Assists", "Asts/90", "xA", "xA/90",
-        "Pas %", "Ps A/90", "Ch C/90", "OP-KP/90", "Pr passes/90", "Crs A/90", "Cr C/90", "Cr C/A",
-        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", "Drb/90", "Fouls Against", "Poss Lost/90",
-        "Poss Won/90", "Pres A/90", "Tck R", "Dist/90", "Sprints/90", "Aer A/90", "Hdr %",
-        "K Hdrs/90", "Tgls/90", "P-ad Mins/Gl", "P-ad G/90", "NP-xG/90", "P-ad NP-xG/90",
-        "P-ad xG/90", "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots/90", "Longshots Scored/90",
-        "P-ad Longshots Scored/90", "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90",
-        "P-ad OP-KP/90", "P-ad Pr Passes/90", "Db Crs A/90", "Db Crs C/90", "Db Crs %",
-        "P-ad Crs A/90", "P-ad Crs C/90", "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "P-ad Db Crs A/90",
-        "P-ad Db Crs C/90", "P-ad Drb/90", "Fouls Drawn/90", "P-ad Fouls Drawn/90", "Offside/90",
-        "P-ad Offside/90", "P-ad Poss Lost/90", "P-ad Poss Won/90", "P-ad Pres A/90", "Fouls/Yellow",
-        "Fouls/Red", "Shot Bias", "Progressive Rate", "Risky Pass Rate"
+        # Scoring
+        "Goals per 90 minutes", "NP-xG/90", "xG-OP", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
+        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
+        "Shot Bias",
+        # Passing
+        "Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+        # Crossing
+        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
+        # Movement
+        "Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90",
+        # Defending
+        "Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
+        # Physicality
+        "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90",
+
+        # Scoring
+        "P-ad G/90", "P-ad NP-xG/90", "P-ad Shot/90", "P-ad ShT/90",
+        "P-ad Longshots Scored/90", "P-ad Longshots/90",
+        # Passing
+        "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+        # Crossing
+        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
+        # Movement
+        "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
+        # Defending
+        "P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90",
+        "Fouls/Yellow", "Fouls/Red",
     ],
     "M": [
         "Rating", "PoM", "xG/shot", "Shot/90", "Shots From Outside The Box Per 90 minutes",
@@ -446,3 +472,7 @@ if uploaded_file:
             with st.expander("Percentile Rankings", expanded=False):
                 st.dataframe(styled_df, use_container_width=True, height=600)
 
+            
+st.dataframe(filtered_df)
+df_no_pad = filtered_df.loc[:, ~filtered_df.columns.str.contains('P-ad')]
+st.dataframe(df_no_pad)
