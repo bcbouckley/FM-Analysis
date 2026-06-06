@@ -92,31 +92,32 @@ pizzacat= {
 position_stat_groups = {
     "ST": [
         # Scoring
-        "Goals per 90 minutes", "NP-xG/90", "xG-OP", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
-        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
-        "Shot Bias",
+        "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
+        #"NP-xG/90", "xG-OP", "Shot/90", "ShT/90", "Goals per 90 minutes", "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
+        
         # Passing
-        "Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
+        "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate",
         # Crossing
-        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
+        
         # Movement
-        "Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90",
+        "Drb Vol", "P-ad Offside/90",
         # Defending
-        "Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
+        "P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90",
         # Physicality
+        "Aer Imp",
         "Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90",
 
         # Scoring
-        "P-ad G/90", "P-ad NP-xG/90", "P-ad Shot/90", "P-ad ShT/90",
-        "P-ad Longshots Scored/90", "P-ad Longshots/90",
+        # "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots Scored/90", "P-ad Longshots/90",
         # Passing
-        "P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90",
+        # "P-ad Passes/90", "P-ad Ch C/90",  "Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90",
         # Crossing
-        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
+        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
         # Movement
-        "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
+        # "Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90", "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
         # Defending
-        "P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90",
+        "Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
+        
         "Fouls/Yellow", "Fouls/Red",
     ],
     "AM": [
@@ -391,6 +392,7 @@ def derived_columns(df):
     df["P-ad Longshots/90"] = df["Shots From Outside The Box Per 90 minutes"] / df["Possession"]
     df["Longshots Scored/90"] = df["Goals From Outside The Box"] / df["Minutes"] * 90
     df["P-ad Longshots Scored/90"] = df["Longshots Scored/90"] / df["Possession"]
+    df["xG-OP /90"] = df["xG-OP"] / df["Minutes"] * 90
     #Passing
     df["P-ad A/90"] = df["Asts/90"] / df["Possession"]
     df["P-ad xA/90"] = df["xA/90"] / df["Possession"]
@@ -433,6 +435,8 @@ def derived_columns(df):
     df["P-ad Fouls/90"] = df["Fouls/90"] / (1-df["Possession"])
     df["Fouls/Yellow"] = df["Fouls Made"] / df["Yel"]
     df["Fouls/Red"] = df["Fouls Made"] / df["Red cards"]
+    #Physicality
+    df["Aer Imp"] = (df["K Hdrs/90"]*df["K Hdrs/90"]) / (df["Aer A/90"] * df["Hdr %"]) * 100
     #Goalkeeping
     df["xGP/90"] = df["xGP"] / df["Minutes"] * 90
     df["P-ad xGP/90"] = df["xGP/90"] / (1-df["Possession"])
@@ -441,16 +445,17 @@ def derived_columns(df):
     df["P-ad Saves/90"] = df["Saves/90"] / (1-df["Possession"])
     df["xGP Rate"] = df["xGP/90"] / df["Tcon/90"] * 100
     #Future additions to index intention:
-    df["Shot Bias"] = df["Shot/90"] / df["Ps A/90"] * 100
     df["Progressive Rate"] = df["Pr passes/90"] / df["Ps A/90"] * 100
     df["Risky Pass Rate"] = df["OP-KP/90"] / df["Ps A/90"] * 100
     df["Link-up Rate"] = (df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]) / df["Ps A/90"] * 100
     df["Link-up Volume/90"] = df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]
     df["P-ad Link-up Volume/90"] = df["Link-up Volume/90"] / df["Possession"]
     df["Touches/90"] = df["Shot/90"] + df["Drb/90"] + df["Ps A/90"] + df["Poss Lost/90"]
+    df["Shot Bias"] = df["Shot/90"] / df["Touches/90"] * 100
     df["Drb Vol"] = df["Drb/90"] / df["Touches/90"] 
-    df["Crs Volume"] = df["OP-Crs A/90"] / df["Touches/90"] 
-
+    df["Crs Volume"] = df["OP-Crs A/90"] / df["Touches/90"]
+    df["Scoring Dependency"] = df["Goals per 90 minutes"] / df["Tgls/90"]
+    df["Creative Dependency"] = df["Asts/90"] / df["Tgls/90"]
     return df
 
 # Position Logic Functions
