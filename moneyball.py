@@ -142,17 +142,17 @@ pizzacat= {
     ],
     "Progression": [
         {"name": "Creative threat", "method": "derived_composite",
-        "components": ["xA/90","Asts/90"]},
+        "components": ["P-ad xA/90","P-ad A/90"]},
         {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
         {"name": "OP crossing volume", "method": "single", "col": "Crs Volume"},
         {"name": "OP crossing accuracy", "method": "single", "col": "OP-Cr %"},
-        {"name": "Progressive Volume", "method": "single", "col": "Pr passes/90"},
+        {"name": "Progressive Volume", "method": "single", "col": "P-ad Pr passes/90"},
         {"name": "Dribble Volume", "method": "single", "col": "Drb Vol"},
     ],
     "Attack": [
         {"name": "Goal threat", "method": "derived_composite",
-        "components": ["xG/90", "Goals/90_derived"]},
-        {"name": "Shot frequency", "method": "single", "col": "Shot/90"},
+        "components": ["P-ad xG/90", "P-ad G/90"]},
+        {"name": "Shot frequency", "method": "single", "col": "Shot Bias"},
         {"name": "Shot quality", "method": "single", "col": "xG/shot"},
     ],
 }
@@ -377,7 +377,7 @@ def derived_columns(df):
     #Future additions to index intention:
     df["Progressive Rate"] = df["Pr passes/90"] / df["Ps A/90"] * 100
     df["Risky Pass Rate"] = df["OP-KP/90"] / df["Ps A/90"] * 100
-    df["Link-up Rate"] = (df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]) / df["Ps A/90"] * 100
+    df["Link-up Rate"] = (df["P-ad Passes/90"] - df["P-ad Pr Passes/90"] - df["P-ad Crs A/90"]) 
     df["Link-up Volume/90"] = df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]
     df["P-ad Link-up Volume/90"] = df["Link-up Volume/90"] / df["Possession"]
     df["Touches/90"] = df["Shot/90"] + df["Drb/90"] + df["Ps A/90"] + df["Poss Lost/90"]
@@ -665,7 +665,7 @@ if uploaded_file:
             st.markdown("#### Pizza Stats")
             
             filtered_pizza = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
-
+            # Percentile ranks for pizza metrics
             for category, metrics in pizzacat.items():
                 for metric in metrics:
                     if metric["method"] == "single":
@@ -673,16 +673,11 @@ if uploaded_file:
                         if col in filtered_df.columns:
                             filtered_pizza[metric["name"]] = filtered_df[col].rank(pct=True) * 100
                     elif metric["method"] == "derived_composite":
-                        # Average the percentile ranks of all components
-                        component_ranks = []
-                        for comp in metric["components"]:
-                            if comp in filtered_df.columns:
-                                component_ranks.append(filtered_df[comp].rank(pct=True))
-                        if component_ranks:
-                            filtered_pizza[metric["name"]] = (sum(component_ranks) / len(component_ranks)) * 100
+                        score = filtered_df[metric["components"]].sum(axis=1)
+                        filtered_pizza[metric["name"]] = score.rank(pct=True) * 100
             
             filtered_pizza = filtered_pizza.round(0).set_index(["Player", "Age", "Club", "Transfer Value"])
-            
+            #Style with red-to-green gradient
             styled_filtered_pizza = filtered_pizza.style.background_gradient(
                 cmap='RdYlGn',
                 vmin=0,
@@ -693,9 +688,28 @@ if uploaded_file:
                 st.dataframe(styled_filtered_pizza, use_container_width=True, height=600)
 
 
+            # pick a player (TEMP: first row, but better via selectbox later)
+            player = filtered_pizza.reset_index()["Player"].iloc[0]
 
+            chart_df = filtered_pizza.reset_index()
+            player_row = chart_df[chart_df["Player"] == player]
 
-                        # Category summary scores
+            data = []
+
+            for _, metrics in pizzacat.items():
+                for metric in metrics:
+                    name = metric["name"]
+
+                    if name in player_row.columns:
+                        data.append({
+                            "category": name,
+                            "score": float(player_row[name].iloc[0])
+                        })
+            st.selectbox("Player", filtered_pizza.reset_index()["Player"].unique())
+
+            
+
+            # Category summary scores
             category_names = []
             for category, metrics in pizzacat.items():
                 metric_names = [m["name"] for m in metrics if m["name"] in filtered_pizza.columns]
@@ -741,6 +755,7 @@ if uploaded_file:
 
 
 
+
             # Filtered Pizza stats
             st.markdown("#### Unfiltered Pizza Stats")
 
@@ -765,5 +780,4 @@ if uploaded_file:
             
             with st.expander("Unfiltered Pizza Stats"):
                 st.dataframe(unfiltered_pizza)
-
 
