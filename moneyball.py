@@ -3,13 +3,29 @@ import pandas as pd
 import numpy as np
 import re
 import unicodedata
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 ## Idea: select team that won the league and use them as a comparison tool/best player in the league.
+
+
+
+
+
+
+
+
 
 # Page Setup
 ## Set page Title
 st.set_page_config(page_title="FM Moneyball", layout="wide")
 st.title("FM26 Moneyball App")
+
+
+
+
+
+
 
 
 # Data Functions and processing
@@ -77,6 +93,16 @@ def load_data(uploaded_file, possession_file):
     
     df = derived_columns(df)
     return df
+
+
+
+
+
+
+
+
+
+
 
 ## Column Grouping
 desc_cols = [
@@ -366,6 +392,19 @@ def derived_columns(df):
     return df
 
 
+
+    return pizza
+
+
+
+
+
+
+
+
+
+
+
 # Position Logic Functions
 ## Splitting best position into separate roles and sides for dropdowns and filtering
 def parse_positions(position_series):
@@ -420,6 +459,13 @@ def build_position_mask(pos_data, selected_role, selected_sides):
     )
 
 
+
+
+
+
+
+
+
 # UI Setup
 ## File uploader
 col_upload1, col_upload2 = st.columns(2)
@@ -427,6 +473,17 @@ with col_upload1:
     uploaded_file = st.file_uploader("Upload FM Player CSV", type=["csv"])
 with col_upload2:
     possession_file = st.file_uploader("Upload Possession CSV", type=["csv"])
+
+
+
+
+
+
+
+
+
+
+
 
 
 ##  Main App
@@ -443,12 +500,17 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file, sep=';')
         st.info("No possession data uploaded - P-ad metrics will not be available.")
     
-    # Identify percentile columns
-    percentile_cols = [
-        col for col in df.columns
-        if col not in desc_cols
-    ]
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # Player Filtering - by position, secondary positions, and U23 toggle
     #Position names for dropdowns
     available_roles, available_sides = parse_positions(df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna(""))
 
@@ -468,7 +530,8 @@ if uploaded_file:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Dropdowns for position and sides
+
+    # 4 sections for filtering by position - role, side, include secondary positions, u23 only
     st.markdown("#### Position Selection")
     col1, col2, col3, col4 = st.columns(4)
 
@@ -494,6 +557,16 @@ if uploaded_file:
     with col4:
         u23_only = st.toggle("U23 Only")
 
+
+
+
+
+
+
+
+
+
+
     # Apply position filter
     if use_sec:
         pos_data = df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna("")
@@ -510,23 +583,31 @@ if uploaded_file:
     st.markdown("<br>", unsafe_allow_html=True)
 
     st.write(f"{len(filtered_df)} players match filter")
-    #st.write("#### Raw Player Data")
 
     with st.expander("Raw Player Data", expanded=False):
         raw_display = filtered_df.set_index(["Player", "Age", "Club", "Transfer Value"])
         st.dataframe(raw_display, use_container_width=True, height=600)
-    
 
+
+
+
+
+
+
+
+
+
+# Creation of Percentile Data
     if len(filtered_df) > 0:
         stat_cols = [c for c in filtered_df.columns if c not in desc_cols]
         for col in stat_cols:
-            filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce") #need to convert percentages to a number
+            filtered_df[col] = pd.to_numeric(filtered_df[col], errors="coerce")
         
         ## what columns in the percentiles
         # Get position-specific columns
         visible_cols = position_stat_groups.get(selected_role, stat_cols)
         # Only keep columns that actually exist in the dataframe
-        visible_cols = [c for c in visible_cols if c in filtered_df.columns]
+        visible_cols = [c for c in visible_cols if c in filtered_df.columns] #is this neccessary?
 
         # calculate percentiles for visible columns
 
@@ -561,8 +642,26 @@ if uploaded_file:
                 st.dataframe(styled_df, use_container_width=True, height=600)
     
 
-                # Pizza chart composite stats
+
+
+
+
+
+
+
+
             st.divider()
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            # Filtered Pizza stats
             st.markdown("#### Pizza Stats")
             
             filtered_pizza = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
@@ -620,4 +719,51 @@ if uploaded_file:
             with st.expander("Pizza Summary", expanded=False):
                 st.dataframe(styled_filtered_pizza_summary, use_container_width=True, height=600)
 
-st.dataframe(df)
+
+
+
+
+
+
+
+
+
+
+            st.divider()
+
+
+
+
+
+
+
+
+
+
+
+            # Filtered Pizza stats
+            st.markdown("#### Unfiltered Pizza Stats")
+
+            unfiltered_pizza = df[["Player", "Age", "Club", "Transfer Value"]].copy()
+
+            for category, metrics in pizzacat.items():
+                for metric in metrics:
+                    if metric["method"] == "single":
+                        col = metric["col"]
+                        if col in df.columns:
+                            unfiltered_pizza[metric["name"]] = df[col].rank(pct=True) * 100
+                    elif metric["method"] == "derived_composite":
+                        # Average the percentile ranks of all components
+                        component_ranks = []
+                        for comp in metric["components"]:
+                            if comp in df.columns:
+                                component_ranks.append(df[comp].rank(pct=True))
+                        if component_ranks:
+                            unfiltered_pizza[metric["name"]] = (sum(component_ranks) / len(component_ranks)) * 100
+            
+            unfiltered_pizza = unfiltered_pizza.round(0).set_index(["Player", "Age", "Club", "Transfer Value"])
+            
+            with st.expander("Unfiltered Pizza Stats"):
+                st.dataframe(unfiltered_pizza)
+
+
