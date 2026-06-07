@@ -17,10 +17,52 @@ st.title("FM26 Moneyball App")
 def strip_accents(text):
     return ''.join(c for c in unicodedata.normalize('NFKD', str(text)) if not unicodedata.category(c).startswith('M'))
 
+## Wages and Value to float
+def parse_money(value):
+    """
+    Converts FM strings like:
+    £450K - £500K
+    £55M - £65M
+    £18K
+    £1.2M
+
+    into a numeric average.
+    """
+
+    if pd.isna(value):
+        return np.nan
+
+    text = str(value)
+
+    matches = re.findall(r"([\d.]+)\s*([KM]?)", text)
+
+    if not matches:
+        return np.nan
+
+    values = []
+
+    for num, suffix in matches[:2]:
+        num = float(num)
+
+        if suffix == "M":
+            num *= 1_000_000
+        elif suffix == "K":
+            num *= 1_000
+
+        values.append(num)
+
+    return sum(values) / len(values)
 
 ## File uploader
 def load_data(uploaded_file, possession_file):
     df = pd.read_csv(uploaded_file, sep=';')
+
+    # Convert FM money strings to numbers immediately
+    if "Wage" in df.columns:
+        df["Wage"] = df["Wage"].apply(parse_money)
+
+    if "Transfer Value" in df.columns:
+        df["Transfer Value"] = df["Transfer Value"].apply(parse_money)
     
     # load and process possession data
     df_poss = pd.read_csv(possession_file)
@@ -93,112 +135,51 @@ position_stat_groups = {
     "ST": [
         # Scoring
         "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
-        #
-        
         # Passing
         "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate",
-        # Crossing
-        
         # Movement
         "Drb Vol", "P-ad Offside/90",
         # Physicality
-        "Aer Imp", "Sprints/90", 
-
+        "Aer Imp", "Sprints/90",
         # Defending
         "Pressing Efficiency",
         
-        
-        # Scoring
-        # "P-ad Shot/90", "P-ad ShT/90", "P-ad Longshots Scored/90", "P-ad Longshots/90", "NP-xG/90", "xG-OP", "Shot/90", "ShT/90", "Goals per 90 minutes", "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
-        # Passing
-        # "P-ad Passes/90", "P-ad Ch C/90",  "Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90",
-        # Crossing
-        #"P-ad OP-Crs A/90", "P-ad OP-Crs C/90", "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
-        # Movement
-        # "Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90", "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
-        # Defending
-        # "P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90", "Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
-        # Physicality
-        # "Aer A/90", "Hdr %", "K Hdrs/90",
-        # "Fouls/Yellow", "Fouls/Red",
     ],
+
     "AM": [
         # Passing
         "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate", "Creative Dependency",
-
         # Scoring
         "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
-        
         # Crossing
-        
+        "P-ad OP-Crs A/90", "OP-Cr %",
         # Movement
         "Drb Vol", "P-ad Offside/90",
         # Physicality
-        "Sprints/90", 
-
+        "Sprints/90",
         # Defending
         "Pressing Efficiency",
-        
-        # Scoring
-        #"Goals per 90 minutes", "NP-xG/90", "xG-OP", "Conv %", "xG/shot", "Shot/90", "ShT/90", 
-        #"Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
-        #"Shot Bias",
-        # Passing
-        #"Asts/90", "xA/90", "Ps A/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
-        # Crossing
-        #"OP-Crs A/90", "OP-Crs C/90", "OP-Cr %",
-        # Movement
-        #"Drb/90", "Fouls Drawn/90",  "Offside/90", "Poss Lost/90",
-        # Defending
-        #"Pres A/90", "Poss Won/90", "Tck R", "Fouls/90",
-        # Physicality
-        #"Sprints/90", "Aer A/90", "Hdr %", "K Hdrs/90",
-
-        # Scoring
-        #"P-ad G/90", "P-ad NP-xG/90", "P-ad Shot/90", "P-ad ShT/90",
-        #"P-ad Longshots Scored/90", "P-ad Longshots/90",
-        # Passing
-        #"P-ad A/90", "P-ad xA/90", "P-ad Passes/90", "P-ad Ch C/90", "P-ad OP-KP/90",
-        # Crossing
-        #"P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
-        # Movement
-        #"P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90", "P-ad Poss Lost/90",
-        # Defending
-        #"P-ad Pres A/90", "P-ad Poss Won/90", "P-ad Fouls/90",
-        #"Fouls/Yellow", "Fouls/Red",
     ],
+
     "M": [
-        # Combined important data
-
-
         ### Scoring
         "xG/shot", "Shot/90", "ShT/90",
         "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes", "Shot %",
-
-
         ### Passing
         "Asts/90", "xA/90", "Ch C/90", "OP-KP/90", "Risky Pass Rate",
         "Pr passes/90", "Progressive Rate",
         "Pas %", "Ps A/90", "Poss Lost/90",
-
         ### Player Movement
         "Drb/90", "Fouls Drawn/90",
-
         ### Defending
         "Int/90", "Poss Won/90",
         "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
-
         ### Physicality - running
         "Dist/90", "Sprints/90",
-
         ### Physicality - Heading
         "Aer A/90", "Hdr %", "K Hdrs/90",
-
         ### Discipline
         "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
-
-        ## Possession Adjusted
-
         ### Scoring
         "P-ad Shot/90", "P-ad ShT/90",
         "P-ad Longshots Scored/90", "P-ad Longshots/90", 
@@ -214,163 +195,66 @@ position_stat_groups = {
         ### Defending
         "P-ad Int/90", "P-ad Poss Won/90",
         "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
-        
         ### Discipline
         "P-ad Fouls/90",
     ],
+
     "DM": [
-        ### Passing
-        "Pr passes/90", "Progressive Rate",
-        "Pas %", "Ps A/90", "Poss Lost/90",
-        "Asts/90", "xA/90",  "Ch C/90", "OP-KP/90", "Risky Pass Rate",
-
-        ### Player Movement
-        "Drb/90", "Fouls Drawn/90",
-
-        ### Defending
-        "Int/90", "Poss Won/90",
-        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
-        "Blk/90","Shts Blckd/90",  "Clr/90",
-
-        ### Discipline
-        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
-
-        ### Physicality - running
-        "Dist/90", "Sprints/90",
-
-        ### Physicality - Heading
-        "Aer A/90", "Hdr %", "K Hdrs/90",
-        
-        ### Scoring
-        "NP-xG/90", "xG/shot", "Shot/90",
-        "Longshots Scored/90", "Shots From Outside The Box Per 90 minutes",
-
-
-        ## Possession Adjusted
-
-        ### Passing
-        "P-ad Pr Passes/90",
-        "P-ad Passes/90", "P-ad Poss Lost/90",
-        "P-ad A/90", "P-ad xA/90", "P-ad Ch C/90", "P-ad OP-KP/90",
-
-        ### Player Movement
-        "P-ad Drb/90", "P-ad Fouls Drawn/90",
-
-        ### Defending
-        "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
-        "P-ad Shts Blckd/90", "P-ad Clr/90", 
-
-        ### Discipline
-        "P-ad Fouls/90",
-        
-        ### Scoring
-        "P-ad NP-xG/90", "P-ad Shot/90",
-        "P-ad Longshots Scored/90", "P-ad Longshots/90", 
-
+        # Possession
+        "Ps A/90","Pas %","P-ad Poss Lost/90","P-ad Pr Passes/90","Progressive Rate",
+        # Creativity
+        "P-ad OP-KP/90","Risky Pass Rate",
+        # Ball Winning
+        "P-ad Int/90","P-ad Poss Won/90","P-ad Tck A/90","P-ad K Tck/90",
+        # Pressing
+        "P-ad Pres A/90","Pressing Efficiency",
+        # Mobility
+        "Dist/90","Sprints/90",
+        # Aerial
+        "Aer A/90","Hdr %",
+        # Extras
+        "Drb Vol","Shot Bias","xG/shot",
     ],
+
     "WB": [
-        ### Passing
-        "Asts/90", "xA/90",  "Ch C/90", "OP-KP/90", "Risky Pass Rate",
-        "Pr passes/90", "Progressive Rate",
-        "Pas %", "Ps A/90", "Poss Lost/90",
-
-        ### Crossing Open Play
-        "OP-Crs A/90", "OP-Crs C/90", "OP-Cr %", 
-
-        ### Player Movement
-        "Drb/90", "Fouls Drawn/90", "Offside/90",
-
-        ### Defending
-        "Int/90", "Poss Won/90",
-        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
-        
-        ### Scoring
-        "NP-xG/90", "Shot/90",
-        "Longshots Scored/90",
-
-        ### Physicality - running
-        "Dist/90", "Sprints/90",
-        
-        ### Discipline
-        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
-
-
-        ## Possession Adjusted
-
-        ### Passing
-        "P-ad A/90", "P-ad xA/90", "P-ad Ch C/90", "P-ad OP-KP/90",
-        "P-ad Pr Passes/90",
-        "P-ad Passes/90", "P-ad Poss Lost/90",
-
-        ### Crossing Open Play
-        "P-ad OP-Crs A/90", "P-ad OP-Crs C/90",
-
-        ### Player Movement
-        "P-ad Drb/90", "P-ad Fouls Drawn/90", "P-ad Offside/90",
-
-        ### Defending
-        "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
-
-        ### Scoring
-        "P-ad NP-xG/90", "P-ad Shot/90",
-        "P-ad Longshots Scored/90",
-        
-
-        ### Discipline
-        "P-ad Fouls/90",
+        # Progression
+        "P-ad Pr Passes/90","Progressive Rate","Drb Vol",
+        # Creativity
+        "P-ad xA/90","P-ad OP-KP/90","Risky Pass Rate",
+        # Crossing
+        "P-ad OP-Crs A/90","OP-Cr %",
+        # Possession
+        "Pas %","P-ad Poss Lost/90",
+        # Defending
+        "P-ad Poss Won/90","P-ad Int/90","P-ad Blk/90","P-ad Tck A/90","P-ad K Tck/90","P-ad Pres A/90",
+        # Physical
+        "Dist/90","Sprints/90",
+        # Optional attacking flavour
+        "Shot Bias",
     ],
+
     "D": [
-        ### Defending
-        "Int/90", "Poss Won/90",
-        "Pres A/90", "K Tck/90", "Tck/90", "Tck R",
-        "Blk/90","Shts Blckd/90",  "Clr/90",
-
-        ### Physicality - Heading
+        # Defending
+        "P-ad Int/90", "P-ad Blk/90", "Int Quality", "P-ad Poss Won/90", "P-ad Tck A/90", "P-ad K Tck/90", "P-ad Shts Blckd/90", "P-ad Clr/90",
+        # Aerial
         "Aer A/90", "Hdr %", "K Hdrs/90",
-
-
-        ### Passing
-        "Pr passes/90", "Progressive Rate",
-        "Pas %", "Ps A/90", "Poss Lost/90",
-
-        ### Player Movement
-        "Drb/90", "Fouls Drawn/90",
-
-        ### Discipline
-        "Fouls/90", "Yel", "Red cards", "Fouls/Yellow", "Fouls/Red",
-
-        ### Physicality - running
+        # Progression
+        "P-ad Pr Passes/90", "Progressive Rate",
+        # Possession
+        "Pas %", "P-ad Poss Lost/90",
+        # Pressing
+        "P-ad Pres A/90",
+        # Physical
         "Dist/90", "Sprints/90",
-        
-
-        ## Possession Adjusted
-        
-        ### Defending
-        "P-ad Int/90", "P-ad Poss Won/90",
-        "P-ad Pres A/90", "P-ad K Tck/90", "P-ad Tck/90", "P-ad Tck A/90",
-        "P-ad Shts Blckd/90", "P-ad Clr/90", 
-        
-        ### Passing
-        "P-ad Pr Passes/90",
-        "P-ad Passes/90", "P-ad Poss Lost/90",
-
-        ### Player Movement
-        "P-ad Drb/90", "P-ad Fouls Drawn/90",
-
-        ### Discipline
-        "P-ad Fouls/90",
     ],
+
     "GK": [
         ### Goalkeeping
         "Clean Sheets", "xGP Rate", "P-ad xGP/90", "Sv %", "SvH Ratio", "MLG",
         #"xGP/90", "P-ad Saves/90", "Saves/90","Pens Saved Ratio",
-
         ### Passing
         "Pas %", "Progressive Rate", "P-ad Poss Lost/90",
         #"P-ad Pr Passes/90", "Pr passes/90", "Poss Lost/90", "P-ad Passes/90", "Ps A/90",
-
         ### Physicality - running
         "Dist/90",
     ],
@@ -454,6 +338,7 @@ def derived_columns(df):
     df["Fouls/Yellow"] = df["Fouls Made"] / df["Yel"]
     df["Fouls/Red"] = df["Fouls Made"] / df["Red cards"]
     df["Pressing Efficiency"] =(df["P-ad Fouls/90"] + df["P-ad Poss Won/90"]) * df["Pres A/90"]
+    df["Int Quality"] = df["P-ad Int/90"] / (df["P-ad Int/90"] + df["P-ad Blk/90"]) * df["P-ad Int/90"]
     #Physicality
     df["Aer Imp"] = (df["K Hdrs/90"]) / (df["Aer A/90"]) * df["Hdr %"]
     #Goalkeeping
@@ -479,6 +364,7 @@ def derived_columns(df):
     df["xCreative Dependency"] = df["xA/90"] / df["Tgls/90"]
 
     return df
+
 
 # Position Logic Functions
 ## Splitting best position into separate roles and sides for dropdowns and filtering
@@ -733,3 +619,5 @@ if uploaded_file:
             
             with st.expander("Pizza Summary", expanded=False):
                 st.dataframe(styled_filtered_pizza_summary, use_container_width=True, height=600)
+
+st.dataframe(df)
