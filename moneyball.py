@@ -688,24 +688,117 @@ if uploaded_file:
                 st.dataframe(styled_filtered_pizza, use_container_width=True, height=600)
 
 
-            # pick a player (TEMP: first row, but better via selectbox later)
-            player = filtered_pizza.reset_index()["Player"].iloc[0]
 
-            chart_df = filtered_pizza.reset_index()
-            player_row = chart_df[chart_df["Player"] == player]
 
-            data = []
 
-            for _, metrics in pizzacat.items():
-                for metric in metrics:
-                    name = metric["name"]
 
-                    if name in player_row.columns:
-                        data.append({
-                            "category": name,
-                            "score": float(player_row[name].iloc[0])
-                        })
-            st.selectbox("Player", filtered_pizza.reset_index()["Player"].unique())
+
+
+
+
+
+
+            # ─── Player Radar Chart ───────────────────────────────────────────
+            st.markdown("#### Player Radar Chart")
+
+            pizza_players = filtered_pizza.index.get_level_values("Player").tolist()
+
+            col_r1, col_r2 = st.columns(2)
+            with col_r1:
+                player_1 = st.selectbox("Player 1", pizza_players, index=0, key="radar_p1")
+            with col_r2:
+                player_2 = st.selectbox("Player 2", pizza_players, index=1, key="radar_p2")
+
+            if player_1 and player_2:
+                metric_names = [m["name"] for cat in pizzacat.values() for m in cat]
+                metric_names = [m for m in metric_names if m in filtered_pizza.columns]
+
+                N = len(metric_names)
+                angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+                angles += angles[:1]
+
+                def get_values(player):
+                    row = filtered_pizza.loc[filtered_pizza.index.get_level_values("Player") == player]
+                    vals = row[metric_names].values.flatten().tolist()
+                    vals += vals[:1]
+                    return vals
+
+                vals_1 = get_values(player_1)
+                vals_2 = get_values(player_2)
+
+                fig, ax = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
+                ax.set_theta_offset(np.pi / 2)
+                ax.set_theta_direction(-1)
+
+                ax.plot(angles, vals_1, linewidth=2, color="#1f77b4", label=player_1)
+                ax.fill(angles, vals_1, alpha=0.15, color="#1f77b4")
+
+                ax.plot(angles, vals_2, linewidth=2, color="#e74c3c", label=player_2)
+                ax.fill(angles, vals_2, alpha=0.15, color="#e74c3c")
+
+                ax.set_xticks(angles[:-1])
+                ax.set_xticklabels(metric_names, size=7)
+                ax.set_ylim(0, 100)
+                ax.set_yticks([20, 40, 60, 80, 100])
+                ax.set_yticklabels(["20", "40", "60", "80", "100"], size=7, color="grey")
+                ax.set_rlabel_position(0)
+                ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
+
+                col_radar, col_pizza = st.columns([1, 1])
+                with col_radar:
+                    st.pyplot(fig)
+
+                with col_pizza:
+                    # Pizza chart - bars on polar axis, coloured by category
+                    cat_colours = {
+                        "Defence": "#2196F3",
+                        "Possession": "#4CAF50",
+                        "Progression": "#FF9800",
+                        "Attack": "#F44336",
+                    }
+
+                    # Build colour list per metric
+                    metric_colours = []
+                    for category, metrics in pizzacat.items():
+                        for m in metrics:
+                            if m["name"] in metric_names:
+                                metric_colours.append(cat_colours.get(category, "#999999"))
+
+                    # Player 1 as filled bars
+                    fig2, ax2 = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
+                    ax2.set_theta_offset(np.pi / 2)
+                    ax2.set_theta_direction(-1)
+
+                    angles_pizza = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+                    width = 2 * np.pi / N
+
+                    bars1 = ax2.bar(angles_pizza, vals_1[:-1], width=width, bottom=0,
+                                    color=metric_colours, alpha=0.6, edgecolor="white", linewidth=0.5)
+
+                    # Player 2 as outline overlay
+                    angles_closed = angles_pizza + [angles_pizza[0]]
+                    ax2.plot(angles_closed, vals_2, linewidth=2, color="#e74c3c", label=player_2)
+
+                    ax2.set_xticks(angles_pizza)
+                    ax2.set_xticklabels(metric_names, size=7)
+                    ax2.set_ylim(0, 100)
+                    ax2.set_yticks([25, 50, 75])
+                    ax2.set_yticklabels(["25", "50", "75"], size=7, color="grey")
+                    ax2.set_rlabel_position(0)
+
+                    # Legend
+                    legend_patches = [Patch(color=c, label=cat) for cat, c in cat_colours.items()]
+                    legend_patches.append(plt.Line2D([0], [0], color="#e74c3c", linewidth=2, label=player_2))
+                    ax2.legend(handles=legend_patches, loc="upper right", bbox_to_anchor=(1.4, 1.1), fontsize=8)
+                    ax2.set_title(player_1, size=12, weight="bold", y=1.08)
+
+                    st.pyplot(fig2)
+
+
+
+
+
+
 
             
 
