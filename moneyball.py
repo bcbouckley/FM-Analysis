@@ -754,8 +754,23 @@ if uploaded_file:
                 player_2 = st.selectbox("Player 2", pizza_players, index=1, key="radar_p2")
 
             if player_1 and player_2:
-                metric_names = [m["name"] for cat in pizzacat.values() for m in cat]
-                metric_names = [m for m in metric_names if m in filtered_pizza.columns]
+                cat_colours = {
+                        "Defence": "#2979FF",
+                        "Possession": "#00E676",
+                        "Progression": "#FF9100",
+                        "Attack": "#FF1744",
+                    }
+
+
+                # Get position-specific metrics from pizza_templates
+                template = pizza_templates.get(selected_role, {})
+                metric_names = []
+                metric_colours = []
+                for category, names in template.items():
+                    for name in names:
+                        if name in filtered_pizza.columns:
+                            metric_names.append(name)
+                            metric_colours.append(cat_colours.get(category, "#999999"))
 
                 N = len(metric_names)
                 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
@@ -791,18 +806,6 @@ if uploaded_file:
                                 # Pizza plot in col1 (constrained width, radar removed)
                 col1, col2 = st.columns([1, 1])
                 with col1:
-                    cat_colours = {
-                        "Defence": "#2979FF",
-                        "Possession": "#00E676",
-                        "Progression": "#FF9100",
-                        "Attack": "#FF1744",
-                    }
-
-                    metric_colours = []
-                    for category, metrics in pizzacat.items():
-                        for m in metrics:
-                            if m["name"] in metric_names:
-                                metric_colours.append(cat_colours.get(category, "#999999"))
 
                     fig2, ax2 = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
                     ax2.xaxis.grid(False)
