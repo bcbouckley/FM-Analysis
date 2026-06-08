@@ -146,15 +146,55 @@ pizzacat= {
         {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
         {"name": "OP crossing volume", "method": "single", "col": "Crs Volume"},
         {"name": "OP crossing accuracy", "method": "single", "col": "OP-Cr %"},
-        {"name": "Progressive Volume", "method": "single", "col": "P-ad Pr passes/90"},
-        {"name": "Dribble Volume", "method": "single", "col": "Drb Vol"},
+        {"name": "Pass Progression", "method": "single", "col": "Progressive Rate"},
+        {"name": "Dribble Rate", "method": "single", "col": "Drb Vol"},
     ],
     "Attack": [
         {"name": "Goal threat", "method": "derived_composite",
         "components": ["P-ad xG/90", "P-ad G/90"]},
         {"name": "Shot frequency", "method": "single", "col": "Shot Bias"},
         {"name": "Shot quality", "method": "single", "col": "xG/shot"},
+        {"name": "Box Threat", "method": "single", "col": "Box Threat"},
     ],
+}
+
+pizza_templates = {
+    "ST": {
+        "Attack": ["Goal threat", "Shot frequency", "Shot quality", "Box threat"],
+        "Progression": ["Creative threat", "Dribble Volume"],
+        "Possession": ["Ball retention", "Link-up play"],
+        "Defence": ["Loose ball recoveries"],
+    },
+    "AM": {
+        "Attack": ["Goal threat", "Shot frequency", "Shot quality"],
+        "Progression": ["Creative threat", "Risk Rate", "OP crossing volume", "OP crossing accuracy", "Progressive Volume", "Dribble Volume"],
+        "Possession": ["Ball retention", "Link-up play"],
+        "Defence": ["Loose ball recoveries"],
+    },
+    "CM": {
+        "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
+        "Progression": ["Creative threat", "Risk Rate", "Progressive Volume"],
+        "Defence": ["Front-foot defending", "Tackle success", "Loose ball recoveries", "Aerial volume", "Aerial success"],
+    },
+    "DM": {
+        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries", "Aerial volume", "Aerial success"],
+        "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
+        "Progression": ["Progressive Volume", "Risk Rate"],
+    },
+    "WB": {
+        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries"],
+        "Progression": ["Creative threat", "OP crossing volume", "OP crossing accuracy", "Progressive Volume", "Dribble Volume"],
+        "Possession": ["Ball retention", "Progressive Rate"],
+    },
+    "D": {
+        "Attack" : ["Goal Threat"],
+        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries", "Aerial volume", "Aerial success"],
+        "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
+        "Progression": ["Dribble Rate", "Risk Rate"],
+    },
+    "GK": {
+        "Possession": ["Ball retention", "Progressive Rate"],
+    },
 }
 
 position_stat_groups = {
@@ -377,9 +417,12 @@ def derived_columns(df):
     #Future additions to index intention:
     df["Progressive Rate"] = df["Pr passes/90"] / df["Ps A/90"] * 100
     df["Risky Pass Rate"] = df["OP-KP/90"] / df["Ps A/90"] * 100
-    df["Link-up Rate"] = (df["P-ad Passes/90"] - df["P-ad Pr Passes/90"] - df["P-ad Crs A/90"]) 
+    df["Link-up Rate"] = (df["P-ad Passes/90"] - df["P-ad Pr Passes/90"] - df["P-ad Crs A/90"]) / df["P-ad Passes/90"]
     df["Link-up Volume/90"] = df["Ps A/90"] - df["Pr passes/90"] - df["Crs A/90"]
     df["P-ad Link-up Volume/90"] = df["Link-up Volume/90"] / df["Possession"]
+    df["Long Pass Vol"] = df["Ps A/90"] - df["Link-up Volume/90"]
+    df["P-ad Long Pass Vol"] = (df["P-ad Passes/90"] - df["Link-up Volume/90"]) / df["Possession"]
+    df["Long Pass Rate"] = df["Long Pass Vol"] / df["Ps A/90"]
     df["Touches/90"] = df["Shot/90"] + df["Drb/90"] + df["Ps A/90"] + df["Poss Lost/90"]
     df["Shot Bias"] = df["Shot/90"] / df["Touches/90"] * 100
     df["Drb Vol"] = df["Drb/90"] / df["Touches/90"] 
@@ -388,6 +431,7 @@ def derived_columns(df):
     df["xScoring Dependency"] = df["xG/90"] / df["Tgls/90"]
     df["Creative Dependency"] = df["Asts/90"] / df["Tgls/90"]
     df["xCreative Dependency"] = df["xA/90"] / df["Tgls/90"]
+    df["Box Threat"] = df["xG/shot"] * df["Shot Bias"]
 
     return df
 
@@ -638,7 +682,7 @@ if uploaded_file:
                 vmax=100
             ).format(subset=visible_cols, precision=0)
             
-            with st.expander("Percentile Rankings", expanded=False):
+            with st.expander("Percentile Rankings", expanded=True):
                 st.dataframe(styled_df, use_container_width=True, height=600)
     
 
@@ -744,32 +788,25 @@ if uploaded_file:
                 ax.set_rlabel_position(0)
                 ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.1))
 
-                col_radar, col_pizza = st.columns([1, 1])
-                with col_radar:
-                    st.pyplot(fig)
-
-
-
-
-
-                #Pizza plot
-                with col_pizza:
+                                # Pizza plot in col1 (constrained width, radar removed)
+                col1, col2 = st.columns([1, 1])
+                with col1:
                     cat_colours = {
                         "Defence": "#2979FF",
                         "Possession": "#00E676",
                         "Progression": "#FF9100",
-                        "Attack": "#FF1744",                    }
+                        "Attack": "#FF1744",
+                    }
 
-                    # Build colour list per metric
                     metric_colours = []
                     for category, metrics in pizzacat.items():
                         for m in metrics:
                             if m["name"] in metric_names:
                                 metric_colours.append(cat_colours.get(category, "#999999"))
-                    
+
                     fig2, ax2 = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
                     ax2.xaxis.grid(False)
-                    ax2.yaxis.grid(True, linestyle="dotted", color="black", alpha=0.5)
+                    ax2.yaxis.grid(True, linestyle="dotted", color="grey", alpha=0.5)
                     ax2.spines['polar'].set_visible(False)
                     ax2.set_theta_offset(np.pi / 2)
                     ax2.set_theta_direction(-1)
@@ -779,26 +816,22 @@ if uploaded_file:
                     angles_pizza = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
                     width = 2 * np.pi / N
 
-                    # Player 2 - coloured filled bars (drawn first, sits behind)
                     ax2.bar(angles_pizza, vals_2[:-1], width=width, bottom=0,
                             color=metric_colours, alpha=0.9, edgecolor="white", linewidth=0.5)
-
-                    # Player 1 - no fill, thick black border (drawn on top)
                     ax2.bar(angles_pizza, vals_1[:-1], width=width, bottom=0,
                             color="none", edgecolor="black", linewidth=2.5)
 
                     ax2.set_xticks(angles_pizza)
                     ax2.set_xticklabels(metric_names, size=7)
                     ax2.set_ylim(0, 101)
-                    ax2.set_yticks([25, 50, 75, 100])
-                    ax2.set_yticklabels(["25", "50", "75", "100"], size=7, color="grey")
+                    ax2.set_yticks([20, 40, 60, 80, 100])
+                    ax2.set_yticklabels(["20", "40", "60", "80", "100"], size=7, color="black")
                     ax2.set_rlabel_position(0)
 
-                    # Legend
                     legend_patches = [Patch(color=c, label=cat) for cat, c in cat_colours.items()]
                     legend_patches.append(Patch(facecolor="none", edgecolor="black", linewidth=2, label=player_1))
                     legend_patches.append(Patch(color="red", alpha=0.6, label=player_2))
-                    ax2.legend(handles=legend_patches, loc="upper right", bbox_to_anchor=(1.4, 1.1), fontsize=8)
+                    ax2.legend(handles=legend_patches, loc="upper right", bbox_to_anchor=(1.4, 1.1), fontsize=5)
                     ax2.set_title(f"{player_1} vs {player_2}", size=11, weight="bold", y=1.08)
 
                     st.pyplot(fig2)
