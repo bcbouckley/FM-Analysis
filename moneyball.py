@@ -748,14 +748,17 @@ if uploaded_file:
                 with col_radar:
                     st.pyplot(fig)
 
+
+
+
+
+                #Pizza plot
                 with col_pizza:
-                    # Pizza chart - bars on polar axis, coloured by category
                     cat_colours = {
-                        "Defence": "#2196F3",
-                        "Possession": "#4CAF50",
-                        "Progression": "#FF9800",
-                        "Attack": "#F44336",
-                    }
+                        "Defence": "#2979FF",
+                        "Possession": "#00E676",
+                        "Progression": "#FF9100",
+                        "Attack": "#FF1744",                    }
 
                     # Build colour list per metric
                     metric_colours = []
@@ -763,34 +766,40 @@ if uploaded_file:
                         for m in metrics:
                             if m["name"] in metric_names:
                                 metric_colours.append(cat_colours.get(category, "#999999"))
-
-                    # Player 1 as filled bars
+                    
                     fig2, ax2 = plt.subplots(figsize=(5, 5), subplot_kw=dict(polar=True))
+                    ax2.xaxis.grid(False)
+                    ax2.yaxis.grid(True, linestyle="dotted", color="black", alpha=0.5)
+                    ax2.spines['polar'].set_visible(False)
                     ax2.set_theta_offset(np.pi / 2)
                     ax2.set_theta_direction(-1)
+                    fig2.patch.set_facecolor("white")
+                    ax2.set_facecolor("white")
 
                     angles_pizza = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
                     width = 2 * np.pi / N
 
-                    bars1 = ax2.bar(angles_pizza, vals_1[:-1], width=width, bottom=0,
-                                    color=metric_colours, alpha=0.6, edgecolor="white", linewidth=0.5)
+                    # Player 2 - coloured filled bars (drawn first, sits behind)
+                    ax2.bar(angles_pizza, vals_2[:-1], width=width, bottom=0,
+                            color=metric_colours, alpha=0.9, edgecolor="white", linewidth=0.5)
 
-                    # Player 2 as outline overlay
-                    angles_closed = angles_pizza + [angles_pizza[0]]
-                    ax2.plot(angles_closed, vals_2, linewidth=2, color="#e74c3c", label=player_2)
+                    # Player 1 - no fill, thick black border (drawn on top)
+                    ax2.bar(angles_pizza, vals_1[:-1], width=width, bottom=0,
+                            color="none", edgecolor="black", linewidth=2.5)
 
                     ax2.set_xticks(angles_pizza)
                     ax2.set_xticklabels(metric_names, size=7)
-                    ax2.set_ylim(0, 100)
-                    ax2.set_yticks([25, 50, 75])
-                    ax2.set_yticklabels(["25", "50", "75"], size=7, color="grey")
+                    ax2.set_ylim(0, 101)
+                    ax2.set_yticks([25, 50, 75, 100])
+                    ax2.set_yticklabels(["25", "50", "75", "100"], size=7, color="grey")
                     ax2.set_rlabel_position(0)
 
                     # Legend
                     legend_patches = [Patch(color=c, label=cat) for cat, c in cat_colours.items()]
-                    legend_patches.append(plt.Line2D([0], [0], color="#e74c3c", linewidth=2, label=player_2))
+                    legend_patches.append(Patch(facecolor="none", edgecolor="black", linewidth=2, label=player_1))
+                    legend_patches.append(Patch(color="red", alpha=0.6, label=player_2))
                     ax2.legend(handles=legend_patches, loc="upper right", bbox_to_anchor=(1.4, 1.1), fontsize=8)
-                    ax2.set_title(player_1, size=12, weight="bold", y=1.08)
+                    ax2.set_title(f"{player_1} vs {player_2}", size=11, weight="bold", y=1.08)
 
                     st.pyplot(fig2)
 
