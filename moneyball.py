@@ -6,6 +6,25 @@ import unicodedata
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import to_rgba
+import matplotlib.font_manager as fm
+
+plt.rcParams.update({
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Inter", "Helvetica Neue", "Arial"],
+    "font.size": 9,
+    "axes.titlesize": 12,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 9,
+    "xtick.labelsize": 7.5,
+    "ytick.labelsize": 7.5,
+    "legend.fontsize": 7.5,
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+    "text.color": "#2b2b2b",
+    "axes.labelcolor": "#2b2b2b",
+    "xtick.color": "#4a4a4a",
+    "ytick.color": "#4a4a4a",
+})
 
 ## Idea: select team that won the league and use them as a comparison tool/best player in the league.
 
@@ -572,7 +591,7 @@ if uploaded_file:
     
     # Player Filtering - by position, secondary positions, and U23 toggle
     #Position names for dropdowns
-    available_roles, available_sides = parse_positions(df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna(""))
+    available_roles, available_sides = parse_positions(df["Best Pos"].fillna("") + ", " + df["Position"].fillna(""))
 
     role_labels = {
         "GK": "Goalkeeper",
@@ -629,7 +648,7 @@ if uploaded_file:
 
     # Apply position filter
     if use_sec:
-        pos_data = df["Best Pos"].fillna("") + ", " + df["Sec. Position"].fillna("")
+        pos_data = df["Best Pos"].fillna("") + ", " + df["Position"].fillna("")
     else:
         pos_data = df["Best Pos"].fillna("")
     
@@ -867,6 +886,70 @@ if uploaded_file:
                     st.pyplot(fig2)
 
 
+
+
+
+                    # ─── Info Block Comparison (below pizza) ───────────────────────
+                    info_metrics = {
+                        "Transfer Value": {"col": "Transfer Value", "fmt": "money"},
+                        "Wages": {"col": "Wage", "fmt": "money"},
+                        "Age": {"col": "Age", "fmt": "money"},
+                        "Left Foot": {"col": "Left Foot", "fmt": "str"},
+                        "Right Foot": {"col": "Right Foot", "fmt": "str"},
+                        "Injury Recurrence": {"col": "Recurring Injury", "fmt": "str"},
+                    }
+
+                    # Pull raw data for both players from the unindexed filtered_df
+                    p1_info = filtered_df.loc[filtered_df["Player"] == player_1].iloc[0]
+                    p2_info = filtered_df.loc[filtered_df["Player"] == player_2].iloc[0]
+
+                    def fmt_value(val, fmt):
+                        if fmt == "money":
+                            if pd.isna(val) or val == 0:
+                                return "N/A"
+                            if val >= 1_000_000:
+                                return f"£{val/1_000_000:.1f}M"
+                            elif val >= 1_000:
+                                return f"£{val/1_000:.0f}K"
+                            else:
+                                return f"£{val:.0f}"
+                        return str(val) if not pd.isna(val) else "N/A"
+
+                    # Build comparison figure
+                    info_labels = list(info_metrics.keys())
+                    n_info = len(info_labels)
+
+                    fig_info, ax_info = plt.subplots(figsize=(5, n_info * 0.3))
+                    ax_info.set_xlim(-1, 1)
+                    ax_info.set_ylim(-0.5, n_info - 0.5)
+                    ax_info.axis("off")
+                    ax_info.invert_yaxis()
+
+                    for i, label in enumerate(info_labels):
+                        meta = info_metrics[label]
+                        v1 = fmt_value(p1_info[meta["col"]], meta["fmt"])
+                        v2 = fmt_value(p2_info[meta["col"]], meta["fmt"])
+
+                        # Player 1 value (left)
+                        ax_info.text(-0.95, i, v1, ha="left", va="center",
+                                    fontsize=9, weight="bold", color="#1f77b4")
+                        # Metric label (centre)
+                        ax_info.text(0, i, label, ha="center", va="center",
+                                    fontsize=8, color="black")
+                        # Player 2 value (right)
+                        ax_info.text(0.95, i, v2, ha="right", va="center",
+                                    fontsize=9, weight="bold", color="#e74c3c")
+
+                    # Header row
+                    ax_info.text(-0.95, -0.45, player_1, ha="left", va="bottom",
+                                fontsize=8, weight="bold", color="#1f77b4")
+                    ax_info.text(0.95, -0.45, player_2, ha="right", va="bottom",
+                                fontsize=8, weight="bold", color="#e74c3c")
+
+                    fig_info.tight_layout()
+                    st.pyplot(fig_info)
+
+
 # col2 percentile comparison
                 with col2:
                     # Get percentile data for both players
@@ -963,8 +1046,8 @@ if uploaded_file:
                 vmax=100
             ).format(subset=category_names, precision=0)
             
-            with st.expander("Pizza Summary", expanded=False):
-                st.dataframe(styled_filtered_pizza_summary, use_container_width=True, height=600)
+            #with st.expander("Pizza Summary", expanded=False):
+                #st.dataframe(styled_filtered_pizza_summary, use_container_width=True, height=600)
 
 
 
