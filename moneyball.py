@@ -38,8 +38,11 @@ plt.rcParams.update({
 
 # Page Setup
 ## Set page Title
-st.set_page_config(page_title="FM Moneyball", layout="wide")
-st.title("FM26 Moneyball App")
+st.title("FM Moneyball App")
+
+st.markdown(
+    "[Download REQUIRED customview moneyball.fmf](https://github.com/bcbouckley/FM-Analysis/raw/main/moneyball.fmf)"
+)
 
 
 
@@ -562,9 +565,6 @@ with col_upload2:
 
 
 
-
-
-
 ##  Main App
 if uploaded_file:
     if possession_file:
@@ -572,7 +572,7 @@ if uploaded_file:
 
         unmatched = df[df['Possession'].isna()]['Club'].unique()
         if len(unmatched) > 0:
-            st.warning(f"{len(unmatched)} clubs have no possession data - P-ad metrics will be empty for those players.")
+            st.warning(f"{len(unmatched)} clubs have no possession data - It is VITAL in current builds for possession data to be included. All stats are  adjusted for possession to increase value and accuracy. Please obtain by clicking on a league>stats>team possession stats and creating a spreadsheet with all teams in dataset and possession.")
             with st.expander("Unmatched clubs"):
                 st.write(list(unmatched))
     else:
