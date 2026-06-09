@@ -5,6 +5,7 @@ import re
 import unicodedata
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
+from matplotlib.colors import to_rgba
 
 ## Idea: select team that won the league and use them as a comparison tool/best player in the league.
 
@@ -92,6 +93,7 @@ def load_data(uploaded_file, possession_file):
     df.drop(columns=['_key'], inplace=True)
     
     df = derived_columns(df)
+    df["Player"] = df["Player"].apply(strip_accents)
     return df
 
 
@@ -126,50 +128,50 @@ desc_cols = [
 # Add pizza group stats
 pizzacat= {
     "Defence": [
-        {"name": "Front-foot defending", "method": "derived_composite", 
+        {"name": "Front-foot Defending", "method": "derived_composite", 
         "components": ["P-ad Tck/90", "P-ad Int/90", "Pres A/90", "P-ad Fouls/90", "P-ad Blk/90"]},
-        {"name": "Tackle success", "method": "single", "col": "Tck R"},
-        {"name": "Back-foot defending", "method": "derived_composite",
+        {"name": "Tackle Success", "method": "single", "col": "Tck R"},
+        {"name": "Back-foot Defending", "method": "derived_composite",
         "components": ["P-ad Shts Blckd/90", "P-ad Clr/90"]},
-        {"name": "Loose ball recoveries", "method": "single", "col": "P-ad Poss Won/90"},
-        {"name": "Aerial volume", "method": "single", "col": "Aer A/90"},
-        {"name": "Aerial success", "method": "single", "col": "Hdr %"},
+        {"name": "Loose Ball Recoveries", "method": "single", "col": "P-ad Poss Won/90"},
+        {"name": "Aerial Volume", "method": "single", "col": "Aer A/90"},
+        {"name": "Aerial Success", "method": "single", "col": "Hdr %"},
     ],
     "Possession": [
-        {"name": "Ball retention", "method": "single", "col": "Pas %"},
-        {"name": "Link-up play", "method": "single", "col": "Link-up Rate"},
+        {"name": "Ball Retention", "method": "single", "col": "Pas %"},
+        {"name": "Link-up Play", "method": "single", "col": "Link-up Rate"},
         {"name": "Progressive Rate", "method": "single", "col": "Progressive Rate"},
     ],
     "Progression": [
-        {"name": "Creative threat", "method": "derived_composite",
+        {"name": "Creative Threat", "method": "derived_composite",
         "components": ["P-ad xA/90","P-ad A/90"]},
         {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
-        {"name": "OP crossing volume", "method": "single", "col": "Crs Volume"},
-        {"name": "OP crossing accuracy", "method": "single", "col": "OP-Cr %"},
+        {"name": "OP Crossing Volume", "method": "single", "col": "Crs Volume"},
+        {"name": "OP Crossing Accuracy", "method": "single", "col": "OP-Cr %"},
         {"name": "Pass Progression", "method": "single", "col": "Progressive Rate"},
         {"name": "Dribble Rate", "method": "single", "col": "Drb Vol"},
     ],
     "Attack": [
-        {"name": "Goal threat", "method": "derived_composite",
+        {"name": "Goal Threat", "method": "derived_composite",
         "components": ["P-ad xG/90", "P-ad G/90"]},
-        {"name": "Shot frequency", "method": "single", "col": "Shot Bias"},
-        {"name": "Shot quality", "method": "single", "col": "xG/shot"},
+        {"name": "Shot Frequency", "method": "single", "col": "Shot Bias"},
+        {"name": "Shot Quality", "method": "single", "col": "xG/shot"},
         {"name": "Box Threat", "method": "single", "col": "Box Threat"},
     ],
 }
 
 pizza_templates = {
     "ST": {
-        "Attack": ["Goal threat", "Shot frequency", "Shot quality", "Box threat"],
-        "Progression": ["Creative threat", "Dribble Volume"],
-        "Possession": ["Ball retention", "Link-up play"],
-        "Defence": ["Loose ball recoveries"],
+        "Attack": ["Goal Threat", "Shot Frequency", "Shot Quality", "Box Threat"],
+        "Defence": ["Front-foot Defending", "Aerial Volume"],
+        "Possession": ["Link-up Play"],
+        "Progression": ["Pass Progression", "Risk Rate", "Dribble Rate", "Creative Threat",],
     },
     "AM": {
-        "Attack": ["Goal threat", "Shot frequency", "Shot quality"],
-        "Progression": ["Creative threat", "Risk Rate", "OP crossing volume", "OP crossing accuracy", "Progressive Volume", "Dribble Volume"],
-        "Possession": ["Ball retention", "Link-up play"],
-        "Defence": ["Loose ball recoveries"],
+        "Attack": ["Goal Threat", "Shot Frequency", "Box Threat"],
+        "Defence": ["Aerial Volume", "Front-foot Defending"],
+        "Possession": ["Link-up Play"],
+        "Progression": ["Pass Progression", "Risk Rate", "OP Crossing Volume", "Dribble Rate", "Creative Threat",],
     },
     "CM": {
         "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
@@ -177,19 +179,22 @@ pizza_templates = {
         "Defence": ["Front-foot defending", "Tackle success", "Loose ball recoveries", "Aerial volume", "Aerial success"],
     },
     "DM": {
-        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries", "Aerial volume", "Aerial success"],
-        "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
-        "Progression": ["Progressive Volume", "Risk Rate"],
+        "Attack": ["Goal Threat", "Shot Frequency",],
+        "Defence": ["Aerial Volume", "Loose Ball Recoveries", "Front-foot Defending", "Tackle Success",],
+        "Possession": ["Link-up Play", "Ball Retention", "Progressive Rate"],
+        "Progression": ["Pass Progression", "Dribble Rate", "Risk Rate"],
     },
     "WB": {
-        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries"],
-        "Progression": ["Creative threat", "OP crossing volume", "OP crossing accuracy", "Progressive Volume", "Dribble Volume"],
-        "Possession": ["Ball retention", "Progressive Rate"],
+        "Attack": ["Goal Threat"],
+        "Defence": ["Tackle Success", "Front-foot Defending", "Back-foot Defending", "Aerial volume"],
+        "Possession": ["Link-up Play", "Ball Retention"],
+        "Progression": ["OP Crossing Volume", "Dribble Rate", "Creative Threat", "Pass Progression",],
+
     },
     "D": {
-        "Attack" : ["Goal Threat"],
-        "Defence": ["Front-foot defending", "Tackle success", "Back-foot defending", "Loose ball recoveries", "Aerial volume", "Aerial success"],
-        "Possession": ["Ball retention", "Link-up play", "Progressive Rate"],
+        "Attack": ["Goal Threat"],
+        "Defence": ["Tackle Tuccess", "Front-foot Defending", "Back-foot Defending", "Loose Ball Recoveries", "Aerial Volume", "Aerial Success"],
+        "Possession": ["Ball Retention", "Link-up Play", "Progressive Rate"],
         "Progression": ["Dribble Rate", "Risk Rate"],
     },
     "GK": {
@@ -811,7 +816,7 @@ if uploaded_file:
                     ax2.xaxis.grid(False)
                     ax2.yaxis.grid(True, linestyle="dotted", color="grey", alpha=0.5)
                     ax2.spines['polar'].set_visible(False)
-                    ax2.set_theta_offset(np.pi / 2)
+                    ax2.set_theta_offset(np.pi / 2 - np.pi / N)
                     ax2.set_theta_direction(-1)
                     fig2.patch.set_facecolor("white")
                     ax2.set_facecolor("white")
