@@ -722,7 +722,7 @@ if uploaded_file:
             
             
             # Filtered Pizza stats
-            st.markdown("#### Pizza Stats")
+            #st.markdown("#### Pizza Stats")
             
             filtered_pizza = filtered_df[["Player", "Age", "Club", "Transfer Value"]].copy()
             # Percentile ranks for pizza metrics
@@ -744,8 +744,8 @@ if uploaded_file:
                 vmax=100
             ).format(precision=0)
             
-            with st.expander("Pizza Stats", expanded=False):
-                st.dataframe(styled_filtered_pizza, use_container_width=True, height=600)
+            #with st.expander("Pizza Stats", expanded=False):
+            #    st.dataframe(styled_filtered_pizza, use_container_width=True, height=600)
 
 
 
@@ -859,20 +859,88 @@ if uploaded_file:
                     ax2.set_rlabel_position(0)
 
                     legend_patches = [Patch(color=c, label=cat) for cat, c in cat_colours.items()]
-                    legend_patches.append(Patch(facecolor="none", edgecolor="black", linewidth=2, label=player_1))
-                    legend_patches.append(Patch(color="red", alpha=0.6, label=player_2))
+                    legend_patches.append(Patch(facecolor="none", edgecolor="black", linewidth=1, label=player_1))
+                    legend_patches.append(Patch(color="black", alpha=1, label=player_2))
                     ax2.legend(handles=legend_patches, loc="upper right", bbox_to_anchor=(1.4, 1.1), fontsize=5)
                     ax2.set_title(f"{player_1} vs {player_2}", size=11, weight="bold", y=1.08)
 
                     st.pyplot(fig2)
 
 
+# col2 percentile comparison
+                with col2:
+                    # Get percentile data for both players
+                    p1_pct = percentile_display.loc[
+                        percentile_display.index.get_level_values("Player") == player_1,
+                        visible_cols
+                    ]
+                    p2_pct = percentile_display.loc[
+                        percentile_display.index.get_level_values("Player") == player_2,
+                        visible_cols
+                    ]
+
+                    # Get raw values for both players
+                    p1_raw = raw_display.loc[
+                        raw_display.index.get_level_values("Player") == player_1,
+                        visible_cols
+                    ]
+                    p2_raw = raw_display.loc[
+                        raw_display.index.get_level_values("Player") == player_2,
+                        visible_cols
+                    ]
+
+                    if not p1_pct.empty and not p2_pct.empty:
+                        p1_vals = p1_pct.values.flatten()
+                        p2_vals = p2_pct.values.flatten()
+                        p1_raw_vals = p1_raw.values.flatten()
+                        p2_raw_vals = p2_raw.values.flatten()
+                        labels = visible_cols
+
+                        cmap = plt.cm.RdYlGn
+
+                        fig3, ax3 = plt.subplots(figsize=(5, max(4, len(labels) * 0.3)))
+
+                        y = np.arange(len(labels))
+                        bar_height = 1.0
+
+                        # Player 1 bars (left/negative direction)
+                        for i, (val, raw) in enumerate(zip(p1_vals, p1_raw_vals)):
+                            ax3.barh(y[i], -val, height=bar_height,
+                                    color=cmap(val / 100), edgecolor="white", linewidth=0.5)
+                            # Label with raw value (inside bar, right-aligned)
+                            ax3.text(-2, y[i], f"{raw:.1f}", ha="right", va="center",
+                                    fontsize=6, color="black", weight="bold")
+
+                        # Player 2 bars (right/positive direction)
+                        for i, (val, raw) in enumerate(zip(p2_vals, p2_raw_vals)):
+                            ax3.barh(y[i], val, height=bar_height,
+                                    color=cmap(val / 100), edgecolor="white", linewidth=0.5)
+                            # Label with raw value (inside bar, left-aligned)
+                            ax3.text(2, y[i], f"{raw:.1f}", ha="left", va="center",
+                                    fontsize=6, color="black", weight="bold")
+
+                        # Formatting
+                        ax3.set_yticks(y)
+                        ax3.set_yticklabels(labels, fontsize=7)
+                        ax3.axvline(0, color="black", linewidth=0.8)
+                        ax3.set_xlim(-105, 105)
+                        ax3.set_xticks([-100, -80, -60, -40, -20, 0, 20, 40, 60, 80, 100])
+                        ax3.set_xticklabels(["100", "80", "60", "40", "20", "0", "20", "40", "60", "80", "100"], fontsize=7)
+                        ax3.set_xlabel("Percentile", fontsize=8)
+
+                        
+                        ax3.set_title(f"{player_1} vs {player_2}", size=11, weight="bold",)
+                        ax3.invert_yaxis()
+                        fig3.tight_layout()
+
+                        st.pyplot(fig3)
 
 
 
 
 
-            
+
+
 
             # Category summary scores
             category_names = []
@@ -908,7 +976,7 @@ if uploaded_file:
 
 
 
-            st.divider()
+            #st.divider()
 
 
 
@@ -922,7 +990,7 @@ if uploaded_file:
 
 
             # Filtered Pizza stats
-            st.markdown("#### Unfiltered Pizza Stats")
+            #st.markdown("#### Unfiltered Pizza Stats")
 
             unfiltered_pizza = df[["Player", "Age", "Club", "Transfer Value"]].copy()
 
@@ -943,6 +1011,6 @@ if uploaded_file:
             
             unfiltered_pizza = unfiltered_pizza.round(0).set_index(["Player", "Age", "Club", "Transfer Value"])
             
-            with st.expander("Unfiltered Pizza Stats"):
-                st.dataframe(unfiltered_pizza)
+            #with st.expander("Unfiltered Pizza Stats"):
+            #    st.dataframe(unfiltered_pizza)
 
