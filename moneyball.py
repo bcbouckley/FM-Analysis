@@ -160,6 +160,17 @@ pizzacat= {
     ],
 }
 
+position_primary_cat = {
+    "ST": "Attack",
+    "AM": "Progression",
+    "M": "Possession",
+    "DM": "Possession",
+    "WB": "Defence",
+    "D": "Defence",
+    "GK": "Possession",
+}
+
+
 pizza_templates = {
     "ST": {
         "Attack": ["Goal Threat", "Shot Frequency", "Shot Quality", "Box Threat"],
@@ -766,16 +777,21 @@ if uploaded_file:
                         "Attack": "#FF1744",
                     }
 
+                primary_cat = position_primary_cat.get(selected_role, None)
 
-                # Get position-specific metrics from pizza_templates
                 template = pizza_templates.get(selected_role, {})
                 metric_names = []
                 metric_colours = []
+                metric_alphas = []
                 for category, names in template.items():
                     for name in names:
                         if name in filtered_pizza.columns:
                             metric_names.append(name)
                             metric_colours.append(cat_colours.get(category, "#999999"))
+                            if category == primary_cat:
+                                metric_alphas.append(1.0)
+                            else:
+                                metric_alphas.append(0.4)
 
                 N = len(metric_names)
                 angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
@@ -824,10 +840,16 @@ if uploaded_file:
                     angles_pizza = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
                     width = 2 * np.pi / N
 
+                    # Player 2 - full/faded by category
+                    p2_colours = [to_rgba(c, alpha=a) for c, a in zip(metric_colours, metric_alphas)]
                     ax2.bar(angles_pizza, vals_2[:-1], width=width, bottom=0,
-                            color=metric_colours, alpha=0.9, edgecolor="white", linewidth=0.5)
+                            color=p2_colours, edgecolor="white", linewidth=0.5)
+
+                    # Player 1 - translucent fill, bold outline fades for non-primary
+                    p1_colours = [to_rgba(c, alpha=0) for c in metric_colours]
+                    p1_edges = [to_rgba("black", alpha=a) for a in metric_alphas]
                     ax2.bar(angles_pizza, vals_1[:-1], width=width, bottom=0,
-                            color="none", edgecolor="black", linewidth=2.5)
+                            color=p1_colours, edgecolor=p1_edges, linewidth=2.5)
 
                     ax2.set_xticks(angles_pizza)
                     ax2.set_xticklabels(metric_names, size=7)
