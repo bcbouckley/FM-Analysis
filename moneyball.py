@@ -167,7 +167,7 @@ pizzacat= {
         {"name": "Risk Rate", "method": "single", "col": "Risky Pass Rate"},
         {"name": "OP Crossing Volume", "method": "single", "col": "Crs Volume"},
         {"name": "OP Crossing Accuracy", "method": "single", "col": "OP-Cr %"},
-        {"name": "Pass Progression", "method": "single", "col": "Progressive Rate"},
+        {"name": "Pass Progression", "method": "single", "col": "P-ad Pr Passes/90"},
         {"name": "Dribble Rate", "method": "single", "col": "Drb Vol"},
     ],
     "Attack": [
@@ -441,7 +441,7 @@ def derived_columns(df):
     df["Pressing Efficiency"] =(df["P-ad Fouls/90"] + df["P-ad Poss Won/90"]) * df["Pres A/90"]
     df["Int Quality"] = df["P-ad Int/90"] / (df["P-ad Int/90"] + df["P-ad Blk/90"]) * df["P-ad Int/90"]
     #Physicality
-    df["Aer Imp"] = (df["K Hdrs/90"]) / (df["Aer A/90"]) * df["Hdr %"]
+    df["Aer Imp"] = ((df["K Hdrs/90"])+(3*df["Hdr %"]/100) )/ (df["Aer A/90"]) * df["Hdr %"]
     #Goalkeeping
     df["xGP/90"] = df["xGP"] / df["Minutes"] * 90
     df["P-ad xGP/90"] = df["xGP/90"] / (1-df["Possession"])
@@ -893,7 +893,7 @@ if uploaded_file:
                     info_metrics = {
                         "Transfer Value": {"col": "Transfer Value", "fmt": "money"},
                         "Wages": {"col": "Wage", "fmt": "money"},
-                        "Age": {"col": "Age", "fmt": "money"},
+                        "Age": {"col": "Age", "fmt": "str"},
                         "Left Foot": {"col": "Left Foot", "fmt": "str"},
                         "Right Foot": {"col": "Right Foot", "fmt": "str"},
                         "Injury Recurrence": {"col": "Recurring Injury", "fmt": "str"},
