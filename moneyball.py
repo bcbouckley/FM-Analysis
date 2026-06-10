@@ -38,6 +38,7 @@ plt.rcParams.update({
 
 # Page Setup
 ## Set page Title
+st.set_page_config(page_title="FM Moneyball", layout="wide")
 st.title("FM Moneyball App")
 
 st.markdown(
