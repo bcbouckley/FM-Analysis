@@ -42,37 +42,39 @@ st.set_page_config(page_title="FM Moneyball", layout="wide")
 st.title("FM Moneyball App")
 
 # ─── Instructions Pop-up (shows once per session) ───────────────────────
-if "show_instructions" not in st.session_state:
-    st.session_state.show_instructions = True
+if "instructions_dismissed" not in st.session_state:
+    st.session_state.instructions_dismissed = False
 
-@st.dialog("Please Read!")
-def show_instructions_dialog():
-    st.markdown("""
-    Please share feedback. It is unfinished but functions well.
-                
-    **Required:**
-    1. Download the custom view file using the link on the main page and use it on the scouting page.
-    2. Select the players you want to analyse in the player search 
-        - All leagues of a similar level to your club you have loaded in the save
-        - Make sure not to exclue your club's players
-        - Filter for a minimum of 1000 minutes - works best before end of the season when there are more players with high minutes
-    3. Export the player data
-    4. Upload the CSV here (Example data is linked if you have trouble)
+if not st.session_state.instructions_dismissed:
+    with st.container():
+        st.markdown("---")
+        st.markdown("### 📋 Getting Started")
+        st.markdown("""
+        Please share feedback. It is unfinished but functions well.
 
-    **Recommended:**
-    - Upload a Possession CSV to enable possession-adjusted stats - this is where the true value is. Good players on bad teams truely get highlighted and you can get a steal.
-    - Get this from: League > Stats > Team > Possession (I then screenshot everything and used AI to make it a csv )
-    - Format: two columns - `Club` and `Possession` (e.g. `52%`)
-    - Toggling secondary positions off is reccomended for all defenders. GK & M(RLC) is still unfinished.
+        **Required:**
+        1. Download the custom view file using the link on the main page and use it on the scouting page.
+        2. Select the players you want to analyse in the player search
+            - All leagues of a similar level to your club you have loaded in the save
+            - Make sure not to exclude your club's players
+            - Filter for a minimum of 1000 minutes - works best before end of the season when there are more players with high minutes
+        3. Export the player data
+        4. Upload the CSV here (Example data is linked if you have trouble)
 
-    **I like to use the percentile data to identify good players and then use the visualisations to compare to the best in your team or your league then scout manually (don't be afraid of Cs and Bs)**
-    """)
-    if st.button("Got it", use_container_width=True):
-        st.session_state.show_instructions = False
-        st.rerun()
+        **Recommended:**
+        - Upload a Possession CSV to enable possession-adjusted stats - this is where the true value is. Use my data and use find top rated defenders before and after uploading posession data to see that importance (Bayern, Barca). 
+        - Get this from: League > Stats > Team > Possession (I then screenshot everything and used AI to make it a csv)
+        - Format: two columns - `Club` and `Possession` (e.g. `52%`)
+        - Toggling secondary positions off is recommended for all defenders. GK & M(RLC) is still unfinished.
 
-if st.session_state.show_instructions:
-    show_instructions_dialog()
+        **I like to use the percentile data to identify good players and then use the visualisations to compare to the best in your team or your league then scout manually (don't be afraid of Cs and Bs)**
+        """)
+        if st.button("Got it - dismiss"):
+            st.session_state.instructions_dismissed = True
+            st.rerun()
+        st.markdown("---")
+
+
 
 st.markdown(
     "[Download REQUIRED customview moneyball.fmf](https://github.com/bcbouckley/FM-Analysis/raw/main/moneyball.fmf)"
@@ -672,7 +674,7 @@ if uploaded_file:
     selected_sides = {selected_sides_display} if selected_sides_display else set()
 
     with col3:
-        use_sec = st.checkbox("Include Secondary Positions", value=True)
+        use_sec = st.checkbox("Include Secondary Positions", value=False)
 
     with col4:
         u23_only = st.toggle("U23 Only")
