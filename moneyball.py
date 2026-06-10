@@ -41,10 +41,45 @@ plt.rcParams.update({
 st.set_page_config(page_title="FM Moneyball", layout="wide")
 st.title("FM Moneyball App")
 
+# ─── Instructions Pop-up (shows once per session) ───────────────────────
+if "show_instructions" not in st.session_state:
+    st.session_state.show_instructions = True
+
+@st.dialog("Please Read!")
+def show_instructions_dialog():
+    st.markdown("""
+    Please share feedback. It is unfinished but functions well.
+                
+    **Required:**
+    1. Download the custom view file using the link on the main page and use it on the scouting page.
+    2. Select the players you want to analyse in the player search 
+        - All leagues of a similar level to your club you have loaded in the save
+        - Make sure not to exclue your club's players
+        - Filter for a minimum of 1000 minutes - works best before end of the season when there are more players with high minutes
+    3. Export the player data
+    4. Upload the CSV here (Example data is linked if you have trouble)
+
+    **Recommended:**
+    - Upload a Possession CSV to enable possession-adjusted stats - this is where the true value is. Good players on bad teams truely get highlighted and you can get a steal.
+    - Get this from: League > Stats > Team > Possession (I then screenshot everything and used AI to make it a csv )
+    - Format: two columns - `Club` and `Possession` (e.g. `52%`)
+    - Toggling secondary positions off is reccomended for all defenders. GK & M(RLC) is still unfinished.
+
+    **I like to use the percentile data to identify good players and then use the visualisations to compare to the best in your team or your league then scout manually (don't be afraid of Cs and Bs)**
+    """)
+    if st.button("Got it", use_container_width=True):
+        st.session_state.show_instructions = False
+        st.rerun()
+
+if st.session_state.show_instructions:
+    show_instructions_dialog()
+
 st.markdown(
     "[Download REQUIRED customview moneyball.fmf](https://github.com/bcbouckley/FM-Analysis/raw/main/moneyball.fmf)"
 )
-
+st.markdown(
+    "[Download example data](https://github.com/bcbouckley/FM-Analysis/blob/6bca02e4357125806acf0d491183a4259e07560c/Exported%20player%20data/salary%20and%20transfer.csv)"
+)
 
 
 
@@ -94,30 +129,34 @@ def parse_money(value):
     return sum(values) / len(values)
 
 ## File uploader
-def load_data(uploaded_file, possession_file):
+def load_data(uploaded_file, possession_file=None):
     df = pd.read_csv(uploaded_file, sep=';')
 
-    # Convert FM money strings to numbers immediately
     if "Wage" in df.columns:
         df["Wage"] = df["Wage"].apply(parse_money)
-
     if "Transfer Value" in df.columns:
         df["Transfer Value"] = df["Transfer Value"].apply(parse_money)
-    
-    # load and process possession data
-    df_poss = pd.read_csv(possession_file)
-    df_poss['Possession'] = df_poss['Possession'].str.rstrip('%').astype(float) / 100
-    
-    # Match on accent-stripped club names
-    df['_key'] = df['Club'].apply(strip_accents)
-    df_poss['_key'] = df_poss['Club'].apply(strip_accents)
-    
-    df = df.merge(df_poss[['_key', 'Possession']], on='_key', how='left')
-    df.drop(columns=['_key'], inplace=True)
-    
+
+    unmatched_clubs = []
+
+    if possession_file is not None:
+        df_poss = pd.read_csv(possession_file)
+        df_poss['Possession'] = df_poss['Possession'].str.rstrip('%').astype(float) / 100
+
+        df['_key'] = df['Club'].apply(strip_accents)
+        df_poss['_key'] = df_poss['Club'].apply(strip_accents)
+
+        df = df.merge(df_poss[['_key', 'Possession']], on='_key', how='left')
+        df.drop(columns=['_key'], inplace=True)
+
+        unmatched_clubs = df[df['Possession'].isna()]['Club'].unique().tolist()
+        df['Possession'] = df['Possession'].fillna(0.5)
+    else:
+        df['Possession'] = 0.5
+
     df = derived_columns(df)
     df["Player"] = df["Player"].apply(strip_accents)
-    return df
+    return df, unmatched_clubs
 
 
 
@@ -227,7 +266,7 @@ pizza_templates = {
     },
     "D": {
         "Attack": ["Goal Threat"],
-        "Defence": ["Tackle Tuccess", "Front-foot Defending", "Back-foot Defending", "Loose Ball Recoveries", "Aerial Volume", "Aerial Success"],
+        "Defence": ["Tackle Success", "Front-foot Defending", "Back-foot Defending", "Loose Ball Recoveries", "Aerial Volume", "Aerial Success"],
         "Possession": ["Ball Retention", "Link-up Play", "Progressive Rate"],
         "Progression": ["Dribble Rate", "Risk Rate"],
     },
@@ -568,17 +607,18 @@ with col_upload2:
 
 ##  Main App
 if uploaded_file:
-    if possession_file:
-        df = load_data(uploaded_file, possession_file)
+    possession_available = possession_file is not None
 
-        unmatched = df[df['Possession'].isna()]['Club'].unique()
-        if len(unmatched) > 0:
-            st.warning(f"{len(unmatched)} clubs have no possession data - It is VITAL in current builds for possession data to be included. All stats are  adjusted for possession to increase value and accuracy. Please obtain by clicking on a league>stats>team possession stats and creating a spreadsheet with all teams in dataset and possession.")
-            with st.expander("Unmatched clubs"):
-                st.write(list(unmatched))
-    else:
-        df = pd.read_csv(uploaded_file, sep=';')
-        st.info("No possession data uploaded - P-ad metrics will not be available.")
+    df, unmatched_clubs = load_data(uploaded_file, possession_file)
+
+    if possession_available and len(unmatched_clubs) > 0:
+        st.warning(f"{len(unmatched_clubs)} clubs had no possession match - defaulted to 50%.")
+        with st.expander("Unmatched clubs"):
+            st.write(unmatched_clubs)
+    elif not possession_available:
+        st.info("No possession data uploaded - It is STRONG SUGGESTED to upload possession data to get true value from this tool")
+        st.markdown("[Download example possession data - top 7 nations](https://github.com/bcbouckley/FM-Analysis/blob/6bca02e4357125806acf0d491183a4259e07560c/Posession%20Data/26-27%20possession/Possession.csv)"
+)
     
     
     
