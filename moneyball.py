@@ -222,6 +222,13 @@ pizzacat= {
         {"name": "Shot Quality", "method": "single", "col": "xG/shot"},
         {"name": "Box Threat", "method": "single", "col": "Box Threat"},
     ],
+    "Shot Stopping": [
+        {"name": "Clean Sheets", "method": "single", "col": "Clean Sheets"},
+        {"name": "Save Importance", "method": "single", "col": "xGP Rate"},
+        {"name": "Save Percentage", "method": "single", "col": "Sv %"},
+        {"name": "Sticky Hands", "method": "single", "col": "SvH Ratio"},
+        {"name": "Sweeping", "method": "single", "col": "Dist/90"},
+    ],
 }
 
 position_primary_cat = {
@@ -231,7 +238,7 @@ position_primary_cat = {
     "DM": "Possession",
     "WB": "Defence",
     "D": "Defence",
-    "GK": "Possession",
+    "GK": "Shot Stopping",
 }
 
 
@@ -273,7 +280,9 @@ pizza_templates = {
         "Progression": ["Dribble Rate", "Risk Rate"],
     },
     "GK": {
-        "Possession": ["Ball retention", "Progressive Rate"],
+        "Possession": [ "Ball Retention", "Link-up Play", "Progressive Rate"],
+        "Shot Stopping": ["Clean Sheets", "Save Importance", "Save Percentage", "Sticky Hands"],
+        "Sweeping": ["Sweeping"]
     },
 }
 
@@ -841,6 +850,8 @@ if uploaded_file:
                         "Possession": "#00E676",
                         "Progression": "#FF9100",
                         "Attack": "#FF1744",
+                        "Shot Stopping": "#9001F0",
+                        "Sweeping": "#FA5EFF",
                     }
 
                 primary_cat = position_primary_cat.get(selected_role, None)
