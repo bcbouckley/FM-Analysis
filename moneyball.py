@@ -280,13 +280,14 @@ pizza_templates = {
 position_stat_groups = {
     "ST": [
         # Scoring
+        "Goals", "NP-xG-OP/xG",
         "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
         # Passing
-        "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate",
+        "Assists", "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate",
         # Movement
         "Drb Vol", "P-ad Offside/90",
         # Physicality
-        "Aer Imp", "Sprints/90",
+        "Aer A/90", "Aer Imp", "Sprints/90",
         # Defending
         "Pressing Efficiency",
         
@@ -294,9 +295,9 @@ position_stat_groups = {
 
     "AM": [
         # Passing
-        "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate", "Creative Dependency",
+        "Assists", "P-ad A/90", "P-ad xA/90", "P-ad OP-KP/90", "Risky Pass Rate", "Creative Dependency",
         # Scoring
-        "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
+        "Goals", "P-ad G/90", "P-ad NP-xG/90", "Conv %", "xG/shot", "Shot Bias", "Scoring Dependency",
         # Crossing
         "P-ad OP-Crs A/90", "OP-Cr %",
         # Movement
@@ -359,14 +360,14 @@ position_stat_groups = {
         # Aerial
         "Aer A/90","Hdr %",
         # Extras
-        "Drb Vol","Shot Bias","xG/shot",
+        "Drb Vol","Shot Bias","xG/shot", "Goals",
     ],
 
     "WB": [
         # Progression
         "P-ad Pr Passes/90","Progressive Rate","Drb Vol",
         # Creativity
-        "P-ad xA/90","P-ad OP-KP/90","Risky Pass Rate",
+        "Assists", "P-ad xA/90","P-ad OP-KP/90","Risky Pass Rate",
         # Crossing
         "P-ad OP-Crs A/90","OP-Cr %",
         # Possession
@@ -435,6 +436,9 @@ def derived_columns(df):
     df["NP-xG/90"] = df["NP-xG"] / df["Minutes"] * 90
     df["P-ad NP-xG/90"] = df["NP-xG/90"] / df["Possession"]
     df["P-ad xG/90"] = df["xG/90"] / df["Possession"]
+    df["NP Goals"] = df["Goals"] - df["Pens"]
+    df["NP-xG-OP"] = df["NP Goals"] - df["NP-xG"]
+    df["NP-xG-OP/xG"] = df["NP-xG-OP"] / df["NP-xG"]
     df["P-ad Shot/90"] = df["Shot/90"] / df["Possession"]
     df["P-ad ShT/90"] = df["ShT/90"] / df["Possession"]
     df["P-ad Longshots/90"] = df["Shots From Outside The Box Per 90 minutes"] / df["Possession"]
