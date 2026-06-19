@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.colors import to_rgba
 import matplotlib.font_manager as fm
+import plotly.express as px
 
 plt.rcParams.update({
     "font.family": "sans-serif",
@@ -1155,3 +1156,75 @@ if uploaded_file:
             #with st.expander("Unfiltered Pizza Stats"):
             #    st.dataframe(unfiltered_pizza)
 
+            # ─── Scatter Plot ─────────────────────────────────────────────
+            st.markdown("#### Scatter Plot")
+
+            col_sx, col_sy, col_sz, col_stoggle = st.columns([2, 2, 2, 1])
+            with col_sx:
+                scatter_x = st.selectbox("X axis", stat_cols, key="scatter_x")
+            with col_sy:
+                scatter_y = st.selectbox("Y axis", stat_cols,
+                                        index=min(1, len(stat_cols) - 1),
+                                        key="scatter_y")
+            with col_stoggle:
+                scatter_3d = st.toggle("3D", key="scatter_3d")
+            with col_sz:
+                scatter_z = st.selectbox("Z axis", stat_cols,
+                                        index=min(2, len(stat_cols) - 1),
+                                        key="scatter_z",
+                                        disabled=not scatter_3d)
+
+            # Colour column: grey for all, highlight selected players
+            plot_df = filtered_df.copy()
+            plot_df["_colour"] = plot_df["Player"].map({
+                player_1: player_1,
+                player_2: player_2,
+            }).fillna("Other")
+
+            colour_map = {
+                player_1: "#1f77b4",
+                player_2: "#e74c3c",
+                "Other": "#aaaaaa",
+            }
+
+            if scatter_3d:
+                fig_sc = px.scatter_3d(
+                    plot_df,
+                    x=scatter_x, y=scatter_y, z=scatter_z,
+                    color="_colour",
+                    color_discrete_map=colour_map,
+                    hover_name="Player",
+                    hover_data={"Club": True, "Age": True,
+                                scatter_x: ":.2f", scatter_y: ":.2f",
+                                scatter_z: ":.2f", "_colour": False},
+                    opacity=0.7,
+                )
+                fig_sc.update_traces(marker=dict(size=5))
+                fig_sc.update_traces(marker=dict(size=10),
+                                    selector=dict(name=player_1))
+                fig_sc.update_traces(marker=dict(size=10),
+                                    selector=dict(name=player_2))
+            else:
+                fig_sc = px.scatter(
+                    plot_df,
+                    x=scatter_x, y=scatter_y,
+                    color="_colour",
+                    color_discrete_map=colour_map,
+                    hover_name="Player",
+                    hover_data={"Club": True, "Age": True,
+                                scatter_x: ":.2f", scatter_y: ":.2f",
+                                "_colour": False},
+                    opacity=0.7,
+                )
+                fig_sc.update_traces(marker=dict(size=7))
+                fig_sc.update_traces(marker=dict(size=12),
+                                    selector=dict(name=player_1))
+                fig_sc.update_traces(marker=dict(size=12),
+                                    selector=dict(name=player_2))
+
+            fig_sc.update_layout(
+                showlegend=True,
+                legend_title_text="Player",
+                height=550,
+            )
+            st.plotly_chart(fig_sc, use_container_width=True)
