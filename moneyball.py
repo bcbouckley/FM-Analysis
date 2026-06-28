@@ -1158,19 +1158,20 @@ if uploaded_file:
 
             # ─── Scatter Plot ─────────────────────────────────────────────
             st.markdown("#### Scatter Plot")
+            scatter_col = filtered_df.select_dtypes(include="number").columns.tolist()
 
             col_sx, col_sy, col_sz, col_stoggle = st.columns([2, 2, 2, 1])
             with col_sx:
-                scatter_x = st.selectbox("X axis", stat_cols, key="scatter_x")
+                scatter_x = st.selectbox("X axis", scatter_col, key="scatter_x")
             with col_sy:
-                scatter_y = st.selectbox("Y axis", stat_cols,
-                                        index=min(1, len(stat_cols) - 1),
+                scatter_y = st.selectbox("Y axis", scatter_col,
+                                        index=min(1, len(scatter_col) - 1),
                                         key="scatter_y")
             with col_stoggle:
                 scatter_3d = st.toggle("3D", key="scatter_3d")
             with col_sz:
-                scatter_z = st.selectbox("Z axis", stat_cols,
-                                        index=min(2, len(stat_cols) - 1),
+                scatter_z = st.selectbox("Z axis", scatter_col,
+                                        index=min(2, len(scatter_col) - 1),
                                         key="scatter_z",
                                         disabled=not scatter_3d)
 
